@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Feeling",
-    "slug": "feeling",
+    "name": "Lumina Mood",
+    "slug": "lumina-mood",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/branding_logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -17,15 +17,15 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/branding_logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.abdulrehman62.feeling"
+      "package": "com.abdulrehman62.luminamood"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/branding_logo.png"
     },
     "extra": {
       "eas": {

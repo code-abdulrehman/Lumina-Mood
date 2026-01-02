@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { MoodProvider } from './src/context/MoodContext';
-import { TabNavigator } from './src/navigation/TabNavigator';
+import { RootNavigator } from './src/navigation/RootNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function App() {
@@ -10,7 +10,7 @@ export default function App() {
     <SafeAreaProvider>
       <MoodProvider>
         <NavigationContainer>
-          <TabNavigator />
+          <RootNavigator />
           <StatusBar style="dark" />
         </NavigationContainer>
       </MoodProvider>

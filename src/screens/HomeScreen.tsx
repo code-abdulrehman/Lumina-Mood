@@ -52,7 +52,7 @@ const MarkdownText = ({ text, style, primaryColor }: { text: string, style: any,
 export const HomeScreen = () => {
     const insets = useSafeAreaInsets();
     const route = useRoute<any>();
-    const { addMood, updateMoodEntry, moods, apiKey, theme } = useMood();
+    const { addMood, updateMoodEntry, moods, apiKey, theme, userName, interests } = useMood();
     const streak = calculateStreak(moods);
 
     const [selectedMood, setSelectedMood] = useState<MoodConfig | null>(null);
@@ -281,7 +281,7 @@ export const HomeScreen = () => {
 
             if (apiKey) {
                 setIsThinking(true);
-                const responseText = await getGeminiChatResponse(apiKey, config.label, []);
+                const responseText = await getGeminiChatResponse(apiKey, config.label, [], undefined, userName, interests);
                 const { cleanText, suggestions: newSugs } = parseSuggestions(responseText);
 
                 const newHistory: ChatMessage[] = [{ role: 'model', text: cleanText }];
@@ -313,7 +313,7 @@ export const HomeScreen = () => {
         scrollToBottom();
 
         try {
-            const responseText = await getGeminiChatResponse(apiKey, selectedMood.label, updatedHistory, msgToSend);
+            const responseText = await getGeminiChatResponse(apiKey, selectedMood.label, updatedHistory, msgToSend, userName, interests);
             const { cleanText, suggestions: newSugs } = parseSuggestions(responseText);
 
             const finalHistory: ChatMessage[] = [...updatedHistory, { role: 'model', text: cleanText }];
@@ -346,25 +346,29 @@ export const HomeScreen = () => {
         <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
             {/* STICKY TOP HEADER */}
             <View style={[styles.stickyHeader, { paddingTop: insets.top + 10, borderBottomColor: theme.border }]}>
-                <View style={styles.headerRow}>
-                    <View>
-                        <Text style={[styles.greeting, { color: theme.textSecondary }]}>Feeling</Text>
-                        {selectedMood ? (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                                <MoodIcon
-                                    iconName={selectedMood.icon}
-                                    size={24}
-                                    color={selectedMood.color}
-                                    customImage={selectedMood.customImage}
-                                    strokeWidth={3}
-                                />
-                                <Text style={[styles.question, { color: selectedMood.color, marginLeft: 10 }]}>
-                                    Today I feel {selectedMood.label.toLowerCase()}
-                                </Text>
-                            </View>
-                        ) : (
-                            <Text style={[styles.question, { color: theme.text }]}>How do you feel?</Text>
-                        )}
+                <View style={[styles.headerRow, { alignItems: 'center' }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View>
+                            <Text style={[styles.greeting, { color: theme.textSecondary }]}>
+                                {userName ? `Hi, ${userName}` : 'Lumina Mood'}
+                            </Text>
+                            {selectedMood ? (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                    <MoodIcon
+                                        iconName={selectedMood.icon}
+                                        size={24}
+                                        color={selectedMood.color}
+                                        customImage={selectedMood.customImage}
+                                        strokeWidth={3}
+                                    />
+                                    <Text style={[styles.question, { color: theme.textSecondary, marginLeft: 10 }]}>
+                                        Today you feel <Text style={[styles.question, { color: selectedMood.color }]}>{selectedMood.label.toLowerCase()}</Text>
+                                    </Text>
+                                </View>
+                            ) : (
+                                <Text style={[styles.question, { color: theme.text }]}>How do you feel?</Text>
+                            )}
+                        </View>
                     </View>
                     {streak > 0 && (
                         <View style={styles.streakBadge}>
@@ -458,7 +462,7 @@ export const HomeScreen = () => {
                             {chatHistory.map((msg, idx) => (
                                 <View key={idx} style={[
                                     styles.messageBubble,
-                                    msg.role === 'user' ? styles.userBubble : [styles.modelCard, { borderColor: theme.border, borderRadius: theme.radiusLarge }],
+                                    msg.role === 'user' ? styles.userBubble : [styles.modelCard, { borderRadius: theme.radiusLarge, backgroundColor: theme.primary + "15" }],
                                 ]}>
                                     {msg.role === 'model' && (
                                         <View style={styles.modelHeaderContainer}>
@@ -502,14 +506,14 @@ export const HomeScreen = () => {
                             {!isThinking && suggestions && suggestions.length > 0 && (
                                 <View style={styles.quickQuestionsContainer}>
                                     <View style={styles.quickHeader}>
-                                        <MessageCircle size={14} color={theme.textSecondary} />
+                                        <MessageCircle size={12} color={theme.textSecondary} />
                                         <Text style={[styles.quickTitle, { color: theme.textSecondary }]}>Suggested Questions:</Text>
                                     </View>
                                     {suggestions.filter(s => s && String(s).trim().length > 0).map((s, i) => (
                                         <TouchableOpacity
                                             key={i}
                                             activeOpacity={0.7}
-                                            style={[styles.quickBtn, { borderColor: theme.primary, borderRadius: theme.radius }]}
+                                            style={[styles.quickBtn, { borderColor: theme.primary, borderRadius: theme.radius, backgroundColor: theme.card }]}
                                             onPress={() => handleQuickQuestionClick(String(s))}
                                         >
                                             <Text style={[styles.quickBtnText, { color: theme.primary }]} numberOfLines={2}>{String(s)}</Text>
@@ -527,13 +531,11 @@ export const HomeScreen = () => {
                     styles.footerContainer,
                     {
                         borderTopColor: theme.border,
-                        paddingBottom: Math.max(insets.bottom, 15),
+                        paddingBottom: Math.max(insets.bottom, 8),
                         backgroundColor: selectedMood ? 'transparent' : theme.background,
-                        borderTopWidth: selectedMood ? 0 : 1,
+                        borderTopWidth: selectedMood ? 0 : 0,
                         paddingHorizontal: selectedMood ? 0 : 20,
                         paddingTop: selectedMood ? 0 : 12,
-                        elevation: selectedMood ? 0 : 10,
-                        shadowOpacity: selectedMood ? 0 : 0.05,
                     }
                 ]}>
                     {selectedMood && (
@@ -643,7 +645,7 @@ const styles = StyleSheet.create({
         opacity: 0.6,
     },
     question: {
-        fontSize: 26,
+        fontSize: 22,
         fontWeight: '900',
         letterSpacing: -0.5,
     },
@@ -738,8 +740,6 @@ const styles = StyleSheet.create({
     },
     userBubble: {
         alignSelf: 'flex-end',
-        backgroundColor: '#E2E8F0',
-        borderBottomRightRadius: 4,
     },
     userText: {
         color: '#1E293B',
@@ -748,9 +748,7 @@ const styles = StyleSheet.create({
     },
     modelCard: {
         alignSelf: 'flex-start',
-        borderWidth: 1,
-        backgroundColor: '#FFFFFF',
-        borderBottomLeftRadius: 4,
+        borderBottomLeftRadius: 0
     },
     modelHeader: {
         flexDirection: 'row',
@@ -789,7 +787,7 @@ const styles = StyleSheet.create({
         paddingLeft: 4,
     },
     quickTitle: {
-        fontSize: 12,
+        fontSize: 10,
         fontWeight: '700',
         textTransform: 'uppercase',
         marginLeft: 8,
@@ -798,30 +796,21 @@ const styles = StyleSheet.create({
     quickBtn: {
         flexDirection: 'row',
         flexShrink: 1,
+        alignSelf: 'flex-start',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
         paddingVertical: 14,
         marginBottom: 10,
         borderWidth: 1.5,
-        backgroundColor: '#FFF',
     },
     quickBtnText: {
-        flex: 1,
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: '600',
-        lineHeight: 20,
+        lineHeight: 14,
         marginRight: 10,
     },
     footerContainer: {
-        backgroundColor: '#FFFFFF',
-        borderTopWidth: 1,
         paddingHorizontal: 20,
-        paddingTop: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 10,
     },
     compactMoodScroll: {
         paddingVertical: 10,
@@ -853,7 +842,7 @@ const styles = StyleSheet.create({
         paddingLeft: 15,
         paddingVertical: 5,
         backgroundColor: '#F8FAFC',
-        marginBottom: 5,
+        marginBottom: 2,
         marginHorizontal: 8,
     },
     input: {

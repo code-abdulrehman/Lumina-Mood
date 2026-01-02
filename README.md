@@ -1,6 +1,6 @@
-# Feeling 🧘‍♂️✨
+# Lumina Mood 🧘‍♂️✨
 
-Feeling is a premium, AI-powered emotional companion designed to help you track, analyze, and master your well-being. Built with Expo and powered by Google Gemini AI.
+Lumina Mood is a premium, AI-powered emotional companion designed to help you track, analyze, and master your well-being. Built with Expo and powered by Google Gemini AI.
 
 ## ✨ Key Features
 

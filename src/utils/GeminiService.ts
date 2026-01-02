@@ -11,17 +11,17 @@ export interface ChatMessage {
  * Verified Model IDs from Google AI Documentation (Jan 2026).
  */
 const MODEL_PRIORITY = [
-    "gemini-2.0-flash-exp",   // Newer, high-performance experimental model with high free-tier limits
-    "gemini-1.5-flash",       // Stable standard flash model
-    "gemini-1.5-flash-8b",    // Smaller, high-speed model
-    "gemini-1.5-pro",         // More complex model
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
 ];
 
 export const getGeminiChatResponse = async (
     apiKey: string,
     moodLabel: string,
     history: ChatMessage[],
-    userInput?: string
+    userInput?: string,
+    userName?: string | null,
+    interests?: string[]
 ) => {
     // Attempt each model in order of priority
     for (let i = 0; i < MODEL_PRIORITY.length; i++) {
@@ -32,14 +32,17 @@ export const getGeminiChatResponse = async (
 
             const genAI = new GoogleGenerativeAI(apiKey);
 
-            const systemPrompt = `You are Feeling, a warm mood companion.
+            const systemPrompt = `You are Lumina, a warm and empathetic mood companion.
+            The user's name is ${userName || 'friend'}. ${interests && interests.length > 0 ? `They are interested in ${interests.join(', ')}.` : ''}
             The user is currently feeling "${moodLabel}".
             
             INSTRUCTIONS:
-            1. Keep responses under 3 sentences.
-            2. Offer 1 grounded tip.
-            3. ALWAYS end with exactly 3 suggestions in this format:
-            [SUGGESTIONS]: Question 1? | Question 2? | Question 3?
+            1. Keep responses very short (1-2 sentences).
+            2. Be warm, supportive, and never harsh.
+            3. Mention or relate to one of their interests if helpful/appropriate for their current mood.
+            4. Offer a quick, replyable follow-up.
+            5. ALWAYS end with exactly 3 short suggestions/questions in this format:
+            [SUGGESTIONS]: Suggestion 1? | Suggestion 2? | Suggestion 3?
             
             No medical advice.`;
 
@@ -115,8 +118,35 @@ export const getGeminiChatResponse = async (
     return "I'm here for you. [SUGGESTIONS]: Tell me more. | Can you help? | What should I do?";
 };
 
-export const getGeminiResponse = async (apiKey: string, moodLabel: string) => {
-    return getGeminiChatResponse(apiKey, moodLabel, []);
+export const getGeminiResponse = async (apiKey: string, moodLabel: string, userName?: string | null, interests?: string[]) => {
+    return getGeminiChatResponse(apiKey, moodLabel, [], undefined, userName, interests);
+};
+
+export const validateApiKey = async (apiKey: string): Promise<{ valid: boolean; error?: string }> => {
+    try {
+        if (!apiKey) return { valid: false, error: "Please enter an API key." };
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+
+        // Try a very simple, low-token generation
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: "hi" }] }],
+            generationConfig: { maxOutputTokens: 5 }
+        });
+
+        const response = await result.response;
+        if (response.text()) {
+            return { valid: true };
+        }
+        return { valid: false, error: "Could not verify key. Please try again." };
+    } catch (error: any) {
+        let msg = "Invalid API Key.";
+        if (error?.message?.includes('429')) msg = "Quota exceeded or too many requests.";
+        if (error?.message?.includes('403')) msg = "Key does not have permission for this model.";
+        if (error?.message?.includes('API_KEY_INVALID')) msg = "The API key provided is invalid.";
+        return { valid: false, error: msg };
+    }
 };
 
 export const parseSuggestions = (text: string): { cleanText: string, suggestions: string[] } => {

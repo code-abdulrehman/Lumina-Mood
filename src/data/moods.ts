@@ -48,7 +48,7 @@ export const MOOD_CONFIGS: MoodConfig[] = [
         level: 'awesome',
         icon: 'Zap',
         label: 'Awesome',
-        color: '#8B5CF6', // Purple
+        color: '#4a6fa5',
         customImage: CUSTOM_MOOD_IMAGES.awesome,
     },
 ];

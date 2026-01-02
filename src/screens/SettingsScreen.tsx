@@ -14,27 +14,45 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMood } from '../context/MoodContext';
-import { ExternalLink, Key, ShieldCheck, Sparkles, Trash2, Palette, BrainCircuit, Activity, Check } from 'lucide-react-native';
+import { ExternalLink, Key, ShieldCheck, Sparkles, Trash2, Palette, BrainCircuit, Activity, Check, X } from 'lucide-react-native';
+import { validateApiKey } from '../utils/GeminiService';
+import * as Clipboard from 'expo-clipboard';
 
 const COLOR_OPTIONS = [
-    '#6366F1', // Indigo (Default)
+    '#9cb167', // Emerald
+    '#6366F1', // Indigo
     '#EC4899', // Pink
     '#8B5CF6', // Violet
-    '#9cb167', // Emerald
     '#F59E0B', // Amber
-    '#3B82F6', // Blue
+    '#4a6fa5', // Blue
     '#008080', // Teal
     '#bac4c8', //zinc
     '#800000', // Maroon
     '#F97316', // Orange
-
 ];
 
 export const SettingsScreen = () => {
     const insets = useSafeAreaInsets();
-    const { apiKey, updateApiKey, clearAllData, primaryColor, updatePrimaryColor, theme } = useMood();
+    const { apiKey, updateApiKey, clearAllData, primaryColor, updatePrimaryColor, theme, userName, interests, updateUserSettings } = useMood();
     const [keyInput, setKeyInput] = useState(apiKey || '');
+    const [nameInput, setNameInput] = useState(userName || '');
+    const [selectedInterests, setSelectedInterests] = useState<string[]>(interests || []);
     const [isSaving, setIsSaving] = useState(false);
+
+    const INTEREST_OPTIONS = [
+        { id: 'music', label: 'Music', icon: Activity },
+        { id: 'videos', label: 'Videos', icon: Sparkles },
+        { id: 'books', label: 'Books', icon: BrainCircuit },
+        { id: 'news', label: 'News', icon: Activity },
+    ];
+
+    const toggleInterest = (id: string) => {
+        if (selectedInterests.includes(id)) {
+            setSelectedInterests(selectedInterests.filter(i => i !== id));
+        } else if (selectedInterests.length < 3) {
+            setSelectedInterests([...selectedInterests, id]);
+        }
+    };
 
     useEffect(() => {
         if (apiKey) setKeyInput(apiKey);
@@ -42,9 +60,24 @@ export const SettingsScreen = () => {
 
     const handleSave = async () => {
         setIsSaving(true);
-        await updateApiKey(keyInput);
+
+        // Validate API Key if it changed
+        if (keyInput !== apiKey) {
+            const validation = await validateApiKey(keyInput);
+            if (!validation.valid) {
+                setIsSaving(false);
+                Alert.alert("Invalid API Key", validation.error || "Please check your key and try again.");
+                return;
+            }
+        }
+
+        await updateUserSettings({
+            apiKey: keyInput,
+            userName: nameInput,
+            interests: selectedInterests
+        });
         setIsSaving(false);
-        Alert.alert("Success", "API key updated.");
+        Alert.alert("Success", "Settings updated.");
     };
 
     const handleClearData = () => {
@@ -70,6 +103,13 @@ export const SettingsScreen = () => {
         Linking.openURL('https://aistudio.google.com/app/apikey');
     };
 
+    const handlePaste = async () => {
+        const text = await Clipboard.getStringAsync();
+        if (text) {
+            setKeyInput(text);
+        }
+    };
+
     return (
         <View style={[styles.mainContainer, { backgroundColor: theme.background, paddingTop: insets.top || 20 }]}>
             <KeyboardAvoidingView
@@ -85,10 +125,10 @@ export const SettingsScreen = () => {
                             resizeMode="contain"
                         />
                         <View style={styles.brandingTextContainer}>
-                            <Text style={[styles.brandTitle, { color: theme.text }]}>Feeling</Text>
+                            <Text style={[styles.brandTitle, { color: theme.text }]}>Lumina Mood</Text>
                             <View style={styles.taglineRow}>
                                 <BrainCircuit size={12} color={primaryColor} />
-                                <Text style={[styles.brandTagline, { color: theme.textSecondary }]}>Empathetic Tracking</Text>
+                                <Text style={[styles.brandTagline, { color: theme.textSecondary }]}>Neural Intelligence AI</Text>
                             </View>
                         </View>
                     </View>
@@ -96,6 +136,52 @@ export const SettingsScreen = () => {
                     <View style={styles.header}>
                         <Text style={[styles.title, { color: theme.text }]}>Settings</Text>
                         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Fine-tune your personal insights engine.</Text>
+                    </View>
+
+                    {/* PROFILE SECTION */}
+                    <View style={[styles.card, { backgroundColor: '#fff', borderRadius: theme.radiusLarge }]}>
+                        <View style={styles.cardHeader}>
+                            <Activity size={20} color={theme.primary} />
+                            <Text style={[styles.cardTitle, { color: theme.text }]}>Personal Profile</Text>
+                        </View>
+                        <Text style={[styles.cardDescription, { color: theme.textSecondary }]}>
+                            Update how I address you and what you're interested in.
+                        </Text>
+
+                        <View style={[styles.inputContainer, { borderColor: theme.border, backgroundColor: theme.card, borderRadius: theme.radius }]}>
+                            <TextInput
+                                style={[styles.input, { color: theme.text }]}
+                                placeholder="Your Name"
+                                value={nameInput}
+                                onChangeText={setNameInput}
+                                placeholderTextColor={theme.textSecondary}
+                            />
+                        </View>
+
+                        <Text style={[styles.label, { color: theme.text, marginBottom: 12 }]}>Interests (Max 3)</Text>
+                        <View style={styles.interestsGrid}>
+                            {INTEREST_OPTIONS.map(item => (
+                                <TouchableOpacity
+                                    key={item.id}
+                                    style={[
+                                        styles.interestTag,
+                                        {
+                                            borderColor: selectedInterests.includes(item.id) ? theme.primary : theme.border,
+                                            backgroundColor: selectedInterests.includes(item.id) ? `${theme.primary}10` : 'transparent',
+                                            borderRadius: theme.radius
+                                        }
+                                    ]}
+                                    onPress={() => toggleInterest(item.id)}
+                                >
+                                    <Text style={{
+                                        color: selectedInterests.includes(item.id) ? theme.primary : theme.textSecondary,
+                                        fontWeight: '700'
+                                    }}>
+                                        {item.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                     </View>
 
                     {/* THEME SECTION */}
@@ -145,14 +231,27 @@ export const SettingsScreen = () => {
                                 onChangeText={setKeyInput}
                                 secureTextEntry
                                 placeholderTextColor={theme.textSecondary}
+                                autoCapitalize="none"
+                                autoCorrect={false}
                             />
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                {keyInput.length > 0 && (
+                                    <TouchableOpacity onPress={() => setKeyInput('')} style={styles.clearBtnInner}>
+                                        <X size={18} color={theme.textSecondary} />
+                                    </TouchableOpacity>
+                                )}
+                                <TouchableOpacity onPress={handlePaste} style={styles.pasteBtnInner}>
+                                    <Sparkles size={14} color={theme.primary} />
+                                    <Text style={[styles.pasteBtnTextInner, { color: theme.primary }]}>Paste</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
 
                         <TouchableOpacity
                             style={[styles.saveButton, { backgroundColor: theme.primary, borderRadius: theme.radius }]}
                             onPress={handleSave}
                         >
-                            <Text style={styles.saveButtonText}>{isSaving ? "Saving..." : "Save API Key"}</Text>
+                            <Text style={styles.saveButtonText}>{isSaving ? "Saving..." : "Save All Settings"}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.linkButton} onPress={openStudio}>
@@ -183,7 +282,7 @@ export const SettingsScreen = () => {
                     </View>
 
                     <View style={styles.footer}>
-                        <Text style={[styles.versionText, { color: theme.textSecondary }]}>Feeling v1.4.0</Text>
+                        <Text style={[styles.versionText, { color: theme.textSecondary }]}>Lumina Mood v1.4.0</Text>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -299,6 +398,40 @@ const styles = StyleSheet.create({
         height: 60,
         fontSize: 15,
         fontWeight: '500',
+    },
+    clearBtnInner: {
+        padding: 8,
+    },
+    pasteBtnInner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 10,
+        marginLeft: 4,
+    },
+    pasteBtnTextInner: {
+        fontSize: 11,
+        fontWeight: '800',
+        marginLeft: 4,
+        textTransform: 'uppercase',
+    },
+    label: {
+        fontSize: 14,
+        fontWeight: '800',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+    interestsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+    },
+    interestTag: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderWidth: 2,
     },
     saveButton: {
         height: 60,

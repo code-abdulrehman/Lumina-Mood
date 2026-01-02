@@ -18,6 +18,9 @@ export interface MoodEntry {
 export interface UserSettings {
     apiKey: string;
     primaryColor?: string;
+    userName?: string;
+    interests?: string[];
+    isOnboarded?: boolean;
 }
 
 export interface MoodConfig {

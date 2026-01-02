@@ -26,6 +26,11 @@ interface MoodContextType {
     updateApiKey: (key: string) => Promise<void>;
     primaryColor: string;
     updatePrimaryColor: (color: string) => Promise<void>;
+    userName: string | null;
+    interests: string[];
+    isOnboarded: boolean;
+    completeOnboarding: (name: string, interests: string[], apiKey: string) => Promise<void>;
+    updateUserSettings: (updates: Partial<UserSettings>) => Promise<void>;
     theme: Theme;
 }
 
@@ -35,7 +40,10 @@ export const MoodProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [moods, setMoods] = useState<MoodEntry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [apiKey, setApiKey] = useState<string | null>(null);
-    const [primaryColor, setPrimaryColor] = useState('#6366F1');
+    const [primaryColor, setPrimaryColor] = useState('#4a6fa5');
+    const [userName, setUserName] = useState<string | null>(null);
+    const [interests, setInterests] = useState<string[]>([]);
+    const [isOnboarded, setIsOnboarded] = useState(false);
 
     const theme: Theme = {
         primary: primaryColor,
@@ -58,6 +66,9 @@ export const MoodProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (storedSettings) {
             if (storedSettings.apiKey) setApiKey(storedSettings.apiKey);
             if (storedSettings.primaryColor) setPrimaryColor(storedSettings.primaryColor);
+            if (storedSettings.userName) setUserName(storedSettings.userName);
+            if (storedSettings.interests) setInterests(storedSettings.interests);
+            if (storedSettings.isOnboarded) setIsOnboarded(storedSettings.isOnboarded);
         }
         setIsLoading(false);
     };
@@ -66,25 +77,35 @@ export const MoodProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loadData();
     }, []);
 
-    const updateApiKey = async (key: string) => {
-        const settings = await storage.getSettings() || { apiKey: '' };
-        const updated = { ...settings, apiKey: key };
+    const updateUserSettings = async (updates: Partial<UserSettings>) => {
+        const settings = await storage.getSettings() || { apiKey: apiKey || '' };
+        const updated = { ...settings, ...updates };
         await storage.saveSettings(updated);
-        setApiKey(key);
+
+        if (updates.userName !== undefined) setUserName(updates.userName);
+        if (updates.interests !== undefined) setInterests(updates.interests);
+        if (updates.isOnboarded !== undefined) setIsOnboarded(updates.isOnboarded);
+        if (updates.primaryColor !== undefined) setPrimaryColor(updates.primaryColor);
+        if (updates.apiKey !== undefined) setApiKey(updates.apiKey);
     };
 
-    const updatePrimaryColor = async (color: string) => {
-        const settings = await storage.getSettings() || { apiKey: apiKey || '' };
-        const updated = { ...settings, primaryColor: color };
-        await storage.saveSettings(updated);
-        setPrimaryColor(color);
+    const completeOnboarding = async (name: string, userInterests: string[], apiKeyVal: string) => {
+        await updateUserSettings({
+            userName: name,
+            interests: userInterests,
+            apiKey: apiKeyVal,
+            isOnboarded: true
+        });
     };
 
     const clearAllData = async () => {
         await storage.clearAllData();
         setMoods([]);
         setApiKey(null);
-        setPrimaryColor('#6366F1');
+        setPrimaryColor('#4a6fa5');
+        setUserName(null);
+        setInterests([]);
+        setIsOnboarded(false);
     };
 
     const addMood = async (level: any, iconName: string, label: string) => {
@@ -143,9 +164,14 @@ export const MoodProvider: React.FC<{ children: React.ReactNode }> = ({ children
             clearAllData,
             isLoading,
             apiKey,
-            updateApiKey,
+            updateApiKey: (key) => updateUserSettings({ apiKey: key }),
             primaryColor,
-            updatePrimaryColor,
+            updatePrimaryColor: (color) => updateUserSettings({ primaryColor: color }),
+            userName,
+            interests,
+            isOnboarded,
+            completeOnboarding,
+            updateUserSettings,
             theme
         }}>
             {children}

@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MoodEntry, UserSettings } from '../types/mood';
 
-const MOODS_KEY = '@feeling_moods';
-const SETTINGS_KEY = '@feeling_settings';
+const MOODS_KEY = '@lumina_moods';
+const SETTINGS_KEY = '@lumina_settings';
 
 export const saveMood = async (mood: MoodEntry) => {
     try {

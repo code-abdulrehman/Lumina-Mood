@@ -90,7 +90,7 @@ export const InsightsScreen = () => {
         try {
             const uri = await captureRef(reportRef, { format: 'png', quality: 1.0 });
             if (Platform.OS === 'web') {
-                const text = `📊 My Feeling ${reportData?.title}\n${reportData?.summary}\nMood: ${reportData?.mainMoodLabel}`;
+                const text = `📊 My Lumina Mood ${reportData?.title}\n${reportData?.summary}\nMood: ${reportData?.mainMoodLabel}`;
                 await Share.share({ message: text });
                 return;
             }
@@ -107,8 +107,7 @@ export const InsightsScreen = () => {
             onPress={() => setRange(value)}
             style={[
                 styles.filterBtn,
-                { backgroundColor: range === value ? primaryColor : theme.card },
-                range === value ? styles.filterBtnActive : { borderColor: theme.border, borderWidth: 1 }
+                { backgroundColor: range === value ? primaryColor : theme.background }
             ]}
         >
             <Text style={[styles.filterText, { color: range === value ? '#fff' : theme.textSecondary }]}>{label}</Text>
@@ -122,7 +121,9 @@ export const InsightsScreen = () => {
                 showsVerticalScrollIndicator={false}
             >
                 <View style={styles.header}>
-                    <Text style={[styles.title, { color: theme.text }]}>Insights</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                        <Text style={[styles.title, { color: theme.text }]}>Insights</Text>
+                    </View>
                     <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Patterns focused on your persistence.</Text>
                 </View>
 
@@ -135,7 +136,7 @@ export const InsightsScreen = () => {
 
                 {reportData && (
                     <View style={styles.cardContainer3D}>
-                        <View style={{ borderRadius: 24, overflow: 'hidden' }}>
+                        <View style={{ borderRadius: 26, overflow: 'hidden' }}>
                             <ViewShot ref={reportRef} options={{ format: 'png', quality: 1.0 }}>
                                 <View style={[styles.premiumCard, { backgroundColor: primaryColor }]} ref={shareRef}>
                                     <View style={styles.cardHeader}>
@@ -173,7 +174,7 @@ export const InsightsScreen = () => {
                                         </View>
                                         <View style={styles.brandTag}>
                                             <Zap size={10} color="#FFF" fill="#FFF" />
-                                            <Text style={styles.brandTagText}>FEELING INSIGHTS</Text>
+                                            <Text style={styles.brandTagText}>LUMINA INSIGHTS</Text>
                                         </View>
                                     </View>
                                 </View>
@@ -326,7 +327,7 @@ const styles = StyleSheet.create({
     // 3D EFFECT CONTAINER
     cardContainer3D: {
         marginBottom: 30,
-        borderRadius: 24,
+        borderRadius: 26,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 12 },
         shadowOpacity: 0.25,
@@ -340,9 +341,10 @@ const styles = StyleSheet.create({
         minHeight: 200,
         position: 'relative',
         overflow: 'hidden',
+        borderRadius: 24,
         borderWidth: 1,
         borderBottomWidth: 4,
-        borderRightWidth: 2,
+        borderRightWidth: 4,
         borderColor: 'rgba(255,255,255,0.3)',
     },
     cardHeader: {

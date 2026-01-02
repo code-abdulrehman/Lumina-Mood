@@ -61,7 +61,9 @@ export const HistoryScreen = () => {
     return (
         <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
             <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                <Text style={[styles.title, { color: theme.text }]}>History</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                    <Text style={[styles.title, { color: theme.text }]}>History</Text>
+                </View>
                 <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Your emotional patterns and conversations.</Text>
 
                 <View style={[styles.searchBar, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -79,7 +81,7 @@ export const HistoryScreen = () => {
             {moods.length === 0 ? (
                 <View style={styles.emptyState}>
                     <HistoryIcon size={80} color={theme.border} strokeWidth={1} />
-                    <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No history found. Talk to Feeling to start your journal.</Text>
+                    <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No history found. Talk to Lumina Mood to start your journal.</Text>
                 </View>
             ) : (
                 <FlatList

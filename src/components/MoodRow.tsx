@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import * as Icons from 'lucide-react-native';
 import { format } from 'date-fns';
 import { MoodEntry } from '../types/mood';
 import { MOOD_CONFIGS } from '../data/moods';
 import MoodIcon from './MoodIcon';
+import { useMood } from '../context/MoodContext';
 
 interface MoodRowProps {
     mood: MoodEntry;
@@ -12,6 +12,7 @@ interface MoodRowProps {
 }
 
 export const MoodRow: React.FC<MoodRowProps> = ({ mood, onPress }) => {
+    const { theme } = useMood();
     const config = MOOD_CONFIGS.find(c => c.level === mood.level);
 
     const lastMessage = mood.chatHistory && mood.chatHistory.length > 0
@@ -22,7 +23,7 @@ export const MoodRow: React.FC<MoodRowProps> = ({ mood, onPress }) => {
         <TouchableOpacity
             activeOpacity={0.7}
             onPress={onPress}
-            style={styles.container}
+            style={[styles.container, { backgroundColor: theme.card }]}
         >
             <View style={[styles.iconContainer, { backgroundColor: config?.color || '#eee' }]}>
                 <MoodIcon
@@ -51,13 +52,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 10,
-        backgroundColor: '#fff',
         borderRadius: 20,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 2,
+        shadowOpacity: 0.02,
+        shadowRadius: 1,
+        elevation: 1,
+
     },
     iconContainer: {
         width: 44,
@@ -77,18 +78,18 @@ const styles = StyleSheet.create({
         marginBottom: 2,
     },
     label: {
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: '800',
         color: '#111827',
     },
     time: {
-        fontSize: 11,
+        fontSize: 10,
         color: '#9CA3AF',
         fontWeight: '700',
         textTransform: 'uppercase',
     },
     chatSnippet: {
-        fontSize: 13,
+        fontSize: 10,
         color: '#6B7280',
         fontWeight: '500',
     },

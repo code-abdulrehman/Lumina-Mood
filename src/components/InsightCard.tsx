@@ -82,7 +82,6 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         padding: 2,
         marginBottom: 16,
-        borderWidth: 1,
         overflow: 'hidden',
         position: 'relative',
     },

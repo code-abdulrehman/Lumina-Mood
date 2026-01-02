@@ -2,9 +2,9 @@ import React, { useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Share, Alert, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMood } from '../context/MoodContext';
-import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameMonth } from 'date-fns';
+import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameMonth, addDays } from 'date-fns';
 import { Flame, Share2, Award, Zap, ChevronLeft, ChevronRight, Calendar } from 'lucide-react-native';
-import { getMonthlyPixelData } from '../utils/patternAnalyzer';
+import { getMonthlyPixelData, calculateStreak } from '../utils/patternAnalyzer';
 import { MOOD_CONFIGS } from '../data/moods';
 import MoodIcon from '../components/MoodIcon';
 import ViewShot, { captureRef } from 'react-native-view-shot';
@@ -19,6 +19,11 @@ export const StreakScreen = () => {
     const shareRef = useRef(null);
     const [viewDate, setViewDate] = React.useState(new Date());
 
+    const timelineDays = React.useMemo(() => Array.from({ length: 7 }, (_, i) => {
+        const offset = i - 3;
+        return addDays(new Date(), offset);
+    }), []);
+
     const pixelData = React.useMemo(() => {
         return getMonthlyPixelData(moods, viewDate.getMonth(), viewDate.getFullYear());
     }, [moods, viewDate]);
@@ -27,46 +32,32 @@ export const StreakScreen = () => {
         setViewDate(prev => offset > 0 ? addMonths(prev, 1) : subMonths(prev, 1));
     };
 
-    const monthMoods = React.useMemo(() => {
-        return moods.filter(m => isSameMonth(new Date(m.timestamp), viewDate));
-    }, [moods, viewDate]);
+    const hasMoodOnDay = (date: Date) => {
+        return moods.some(m => isSameDay(new Date(m.timestamp), date));
+    };
 
     const stats = React.useMemo(() => {
-        const totalLogs = monthMoods.length;
+        const currentStreak = calculateStreak(moods);
+        const totalLogs = moods.length;
         const level = Math.ceil(totalLogs / 5) || 1;
+
+        // Month specific moods for the card display context if needed
+        const monthMoods = moods.filter(m => isSameMonth(new Date(m.timestamp), viewDate));
         const counts = monthMoods.reduce((acc, m) => {
             acc[m.level] = (acc[m.level] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
         const sortedMoods = Object.entries(counts).sort((a, b) => b[1] - a[1]);
         const topMoodConfigs = sortedMoods.slice(0, 3).map(m => MOOD_CONFIGS.find(c => c.level === m[0])).filter(Boolean);
-        const topConfig = topMoodConfigs[0];
 
-        const daysInMonth = eachDayOfInterval({
-            start: startOfMonth(viewDate),
-            end: endOfMonth(viewDate)
-        });
-
-        let maxStreak = 0;
-        let currentStreak = 0;
-        daysInMonth.forEach(day => {
-            const hasActivity = moods.some(m => isSameDay(new Date(m.timestamp), day));
-            if (hasActivity) {
-                currentStreak++;
-                maxStreak = Math.max(maxStreak, currentStreak);
-            } else {
-                currentStreak = 0;
-            }
-        });
-
-        return { totalLogs, level, maxStreak, topConfig, topMoodConfigs };
-    }, [monthMoods, viewDate, moods]);
+        return { totalLogs, level, maxStreak: currentStreak, topMoodConfigs };
+    }, [moods, viewDate]);
 
     const handleShareStreak = async () => {
         try {
             const uri = await captureRef(viewShotRef, { format: 'png', quality: 1.0 });
             if (Platform.OS === 'web') {
-                const text = `🔥 I achieved a ${stats.maxStreak}-day streak in ${format(viewDate, 'MMMM')} on Feeling! 🧘‍♂️✨`;
+                const text = `🔥 I achieved a ${stats.maxStreak}-day streak in ${format(viewDate, 'MMMM')} on Lumina Mood! 🧘‍♂️✨`;
                 await Share.share({ message: text });
                 return;
             }
@@ -91,7 +82,7 @@ export const StreakScreen = () => {
 
                 {/* SMALL, MINIMAL 3D ACHIEVMENT CARD */}
                 <View style={styles.cardContainer3D}>
-                    <View style={{ borderRadius: 24, overflow: 'hidden' }}>
+                    <View style={{ borderRadius: 26, overflow: 'hidden' }}>
                         <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1.0 }}>
                             <View style={[styles.streakCard, { backgroundColor: primaryColor }]} ref={shareRef}>
                                 <View style={styles.cardHeader}>
@@ -120,7 +111,7 @@ export const StreakScreen = () => {
                                     </View>
                                     <View style={styles.brandBadge}>
                                         <Zap size={12} color="#FFF" fill="#FFF" />
-                                        <Text style={styles.brandText}>FEELING</Text>
+                                        <Text style={styles.brandText}>LUMINA</Text>
                                     </View>
                                 </View>
                             </View>
@@ -139,7 +130,52 @@ export const StreakScreen = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* INTERACTIVE MONTHLY PIXEL CHART */}
+                {/* UNIQUE VERTICAL PILL TRACKER - RESTORED */}
+                <View style={styles.timelineSection}>
+                    <View style={styles.sectionHeader}>
+                        <Zap size={18} color={primaryColor} />
+                        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Weekly Persistence</Text>
+                    </View>
+
+                    <View style={[styles.pillBoard, { backgroundColor: theme.card, borderRadius: 32 }]}>
+                        {timelineDays.map((day, index) => {
+                            const active = hasMoodOnDay(day);
+                            const isToday = index === 3;
+
+                            return (
+                                <View key={index} style={styles.pillCol}>
+                                    <View style={[
+                                        styles.pillContainer,
+                                        { backgroundColor: theme.border + '15', borderColor: active ? primaryColor : 'transparent' }
+                                    ]}>
+                                        <View style={[styles.pillFill, { backgroundColor: active ? primaryColor : "transparent" }]}>
+                                            <Flame
+                                                size={16}
+                                                color={active ? "#FFF" : theme.textSecondary + '40'}
+                                                fill={active ? "#FFF" : "transparent"}
+                                            />
+                                        </View>
+                                        <Text style={[
+                                            styles.pillDate,
+                                            { color: active ? primaryColor : theme.textSecondary },
+                                            active && { marginBottom: 4 }
+                                        ]}>
+                                            {format(day, 'd')}
+                                        </Text>
+                                    </View>
+                                    <Text style={[
+                                        styles.pillDayName,
+                                        { color: isToday ? primaryColor : theme.textSecondary, fontWeight: isToday ? '900' : '600' }
+                                    ]}>
+                                        {format(day, 'EEE')[0]}
+                                    </Text>
+                                </View>
+                            );
+                        })}
+                    </View>
+                </View>
+
+                {/* INTERACTIVE MONTHLY PIXEL CHART - ADDED BACK */}
                 <View style={styles.pixelSection}>
                     <View style={styles.sectionHeader}>
                         <Calendar size={18} color={primaryColor} />
@@ -175,12 +211,12 @@ export const StreakScreen = () => {
 
                 <View style={styles.statsRow}>
                     <View style={[styles.statBox, { backgroundColor: theme.card, borderRadius: 20 }]}>
-                        <Text style={[styles.statValue, { color: theme.text }]}>{stats.totalLogs}</Text>
+                        <Text style={[styles.statValue, { color: theme.text }]}>{moods.length}</Text>
                         <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Logs</Text>
                     </View>
                     <View style={[styles.statBox, { backgroundColor: theme.card, borderRadius: 20 }]}>
-                        <Text style={[styles.statValue, { color: theme.text }]}>Lv. {stats.level}</Text>
-                        <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Score</Text>
+                        <Text style={[styles.statValue, { color: theme.text }]}>Lv. {Math.ceil(moods.length / 5)}</Text>
+                        <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Habit</Text>
                     </View>
                 </View>
             </ScrollView>
@@ -198,7 +234,7 @@ const styles = StyleSheet.create({
     // 3D EFFECT CONTAINER
     cardContainer3D: {
         marginBottom: 30,
-        borderRadius: 24,
+        borderRadius: 26,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 12 },
         shadowOpacity: 0.25,
@@ -212,9 +248,10 @@ const styles = StyleSheet.create({
         minHeight: 200,
         position: 'relative',
         overflow: 'hidden',
+        borderRadius: 24,
         borderWidth: 1,
         borderBottomWidth: 4,
-        borderRightWidth: 2,
+        borderRightWidth: 4,
         borderColor: 'rgba(255,255,255,0.3)',
     },
     cardHeader: {
@@ -314,9 +351,46 @@ const styles = StyleSheet.create({
     actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 20, borderWidth: 1 },
     actionBtnText: { fontSize: 14, fontWeight: '800', marginLeft: 10 },
 
-    pixelSection: { marginBottom: 32 },
+    timelineSection: { marginBottom: 32 },
     sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, paddingLeft: 4 },
     sectionTitle: { fontSize: 12, fontWeight: '900', marginLeft: 8, textTransform: 'uppercase', letterSpacing: 1 },
+
+    // UNIQUE PILL BOARD DESIGN
+    pillBoard: {
+        paddingVertical: 28,
+        paddingHorizontal: 12,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+    },
+    pillCol: { alignItems: 'center', flex: 1 },
+    pillContainer: {
+        width: 32,
+        height: 80,
+        borderRadius: 16,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        padding: 4,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    pillFill: {
+        width: '100%',
+        height: '65%',
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    pillDate: { fontSize: 12, fontWeight: '900', marginTop: 4 },
+    pillDayName: { fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 },
+
+    pixelSection: { marginBottom: 32 },
+    pixelHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, paddingLeft: 4 },
     headerTitleRow: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginLeft: 8 },
     monthControls: { flexDirection: 'row', alignItems: 'center' },
     navBtn: { padding: 4 },
@@ -326,7 +400,7 @@ const styles = StyleSheet.create({
     pixelDateNum: { fontSize: 9, fontWeight: '700' },
 
     statsRow: { flexDirection: 'row', justifyContent: 'space-between' },
-    statBox: { flex: 1, paddingVertical: 20, marginHorizontal: 5, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(0,0,0,0.02)' },
-    statValue: { fontSize: 22, fontWeight: '900', marginBottom: 2 },
-    statLabel: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 }
+    statBox: { flex: 1, paddingVertical: 24, marginHorizontal: 5, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(0,0,0,0.02)' },
+    statValue: { fontSize: 26, fontWeight: '900', marginBottom: 4 },
+    statLabel: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 }
 });
