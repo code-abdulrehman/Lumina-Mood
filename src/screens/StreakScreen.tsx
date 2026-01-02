@@ -13,6 +13,8 @@ export const StreakScreen = () => {
     const insets = useSafeAreaInsets();
     const { moods, theme, primaryColor } = useMood();
     const viewShotRef = useRef(null);
+    const shareRef = useRef(null);
+
 
     const timelineDays = Array.from({ length: 7 }, (_, i) => {
         const offset = i - 3;
@@ -69,14 +71,14 @@ export const StreakScreen = () => {
                 showsVerticalScrollIndicator={false}
             >
                 <View style={styles.header}>
-                    <Text style={[styles.title, { color: theme.text }]}>Ritual</Text>
+                    <Text style={[styles.title, { color: theme.text }]}>Streak</Text>
                     <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Your daily emotional persistence.</Text>
                 </View>
 
                 {/* PREMIUM STREAK CARD WRAPPED IN VIEWSHOT */}
                 <View style={styles.cardWrapper}>
                     <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1.0 }}>
-                        <View style={[styles.streakCard, { backgroundColor: primaryColor, borderRadius: 36 }]}>
+                        <View style={[styles.streakCard, { backgroundColor: primaryColor, borderRadius: 0 }]} ref={shareRef}>
                             <View style={[styles.circleOverlay, { top: -40, left: -40 }]} />
                             <View style={[styles.circleOverlay, { bottom: -60, right: -40, width: 150, height: 150, opacity: 0.1 }]} />
 
@@ -98,7 +100,7 @@ export const StreakScreen = () => {
                                 </View>
                                 <View style={styles.streakTextGroup}>
                                     <Text style={styles.streakNumber}>{streak}</Text>
-                                    <Text style={styles.streakLabel}>Day Ritual</Text>
+                                    <Text style={styles.streakLabel}>Day Streak</Text>
                                 </View>
                             </View>
 
@@ -120,7 +122,7 @@ export const StreakScreen = () => {
                         style={[styles.actionBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
                     >
                         <Share2 size={18} color={primaryColor} />
-                        <Text style={[styles.actionBtnText, { color: primaryColor }]}>Export Achievement</Text>
+                        <Text style={[styles.actionBtnText, { color: primaryColor }]}>Share Achievement</Text>
                     </TouchableOpacity>
                 </View>
 

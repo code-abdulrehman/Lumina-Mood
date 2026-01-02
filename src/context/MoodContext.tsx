@@ -39,7 +39,7 @@ export const MoodProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const theme: Theme = {
         primary: primaryColor,
-        background: '#FFFFFF',
+        background: '#fff',
         card: '#F9FAFB',
         text: '#111827',
         textSecondary: '#6B7280',
@@ -100,14 +100,14 @@ export const MoodProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return existingEntry; // Reuse existing chat
         }
 
-        // Check 5-chat limit for today
+        // Check 7-chat limit for today (matching total available moods)
         const todaysEntries = moods.filter(m => {
             const mDate = new Date(m.timestamp).setHours(0, 0, 0, 0);
             return mDate === today;
         });
 
-        if (todaysEntries.length >= 5) {
-            Alert.alert("Limit Reached", "You can only track 5 different moods per day. Try deleting an old mood to add a new one.");
+        if (todaysEntries.length >= 7) {
+            Alert.alert("Limit Reached", "You can only track 7 different moods per day. Try deleting an old mood to add a new one.");
             return null;
         }
 

@@ -4,6 +4,7 @@ import * as Icons from 'lucide-react-native';
 import { format } from 'date-fns';
 import { MoodEntry } from '../types/mood';
 import { MOOD_CONFIGS } from '../data/moods';
+import MoodIcon from './MoodIcon';
 
 interface MoodRowProps {
     mood: MoodEntry;
@@ -12,7 +13,6 @@ interface MoodRowProps {
 
 export const MoodRow: React.FC<MoodRowProps> = ({ mood, onPress }) => {
     const config = MOOD_CONFIGS.find(c => c.level === mood.level);
-    const IconComponent = (Icons as any)[mood.iconName] || Icons.HelpCircle;
 
     const lastMessage = mood.chatHistory && mood.chatHistory.length > 0
         ? mood.chatHistory.filter(m => m.role === 'model').slice(-1)[0]?.text
@@ -25,7 +25,12 @@ export const MoodRow: React.FC<MoodRowProps> = ({ mood, onPress }) => {
             style={styles.container}
         >
             <View style={[styles.iconContainer, { backgroundColor: config?.color || '#eee' }]}>
-                <IconComponent size={20} color="#fff" />
+                <MoodIcon
+                    iconName={mood.iconName}
+                    size={20}
+                    color="#fff"
+                    customImage={config?.customImage}
+                />
             </View>
             <View style={styles.textContainer}>
                 <View style={styles.rowHeader}>
@@ -45,7 +50,7 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
+        padding: 10,
         backgroundColor: '#fff',
         borderRadius: 20,
         shadowColor: '#000',

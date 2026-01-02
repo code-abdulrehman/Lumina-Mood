@@ -178,10 +178,11 @@ const styles = StyleSheet.create({
     },
     deleteBtn: {
         width: 48,
-        height: 48,
+        height: 62,
         borderRadius: 15,
         justifyContent: 'center',
         alignItems: 'center',
+        padding: 5,
         marginLeft: 10,
     },
     emptyState: {

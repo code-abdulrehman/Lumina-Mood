@@ -14,16 +14,20 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMood } from '../context/MoodContext';
-import { ExternalLink, Key, ShieldCheck, Sparkles, Trash2, Palette, BrainCircuit, Activity } from 'lucide-react-native';
+import { ExternalLink, Key, ShieldCheck, Sparkles, Trash2, Palette, BrainCircuit, Activity, Check } from 'lucide-react-native';
 
 const COLOR_OPTIONS = [
     '#6366F1', // Indigo (Default)
     '#EC4899', // Pink
     '#8B5CF6', // Violet
-    '#10B981', // Emerald
+    '#9cb167', // Emerald
     '#F59E0B', // Amber
     '#3B82F6', // Blue
-    '#EF4444', // Red
+    '#008080', // Teal
+    '#bac4c8', //zinc
+    '#800000', // Maroon
+    '#F97316', // Orange
+
 ];
 
 export const SettingsScreen = () => {
@@ -109,15 +113,13 @@ export const SettingsScreen = () => {
                                     key={color}
                                     style={[
                                         styles.colorSwatch,
-                                        { borderColor: theme.border },
                                         { borderRadius: theme.radius },
                                         { backgroundColor: color },
-                                        primaryColor === color && { borderWidth: 3, borderColor: theme.text }
                                     ]}
                                     onPress={() => updatePrimaryColor(color)}
                                 >
                                     {primaryColor === color && (
-                                        <View style={styles.checkMark} />
+                                        <Check size={20} color={theme.card}/>
                                     )}
                                 </TouchableOpacity>
                             ))}
@@ -267,7 +269,7 @@ const styles = StyleSheet.create({
     colorGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 12,
+        gap: 8,
     },
     colorSwatch: {
         width: 44,

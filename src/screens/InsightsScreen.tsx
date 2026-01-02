@@ -19,6 +19,7 @@ export const InsightsScreen = () => {
     const { moods, primaryColor, theme } = useMood();
     const [range, setRange] = useState<FilterRange>('7d');
     const reportRef = useRef(null);
+    const shareRef = useRef(null);
 
     // 1. FILTERED DATA (CRITICAL: All components must rely on this)
     const filteredMoods = useMemo(() => {
@@ -121,7 +122,7 @@ export const InsightsScreen = () => {
                 {reportData && (
                     <View style={styles.cardWrapper}>
                         <ViewShot ref={reportRef} options={{ format: 'png', quality: 1.0 }}>
-                            <View style={[styles.premiumCard, { backgroundColor: primaryColor, borderRadius: 36 }]}>
+                            <View style={[styles.premiumCard, { backgroundColor: primaryColor, borderRadius: 0 }]} ref={shareRef}>
                                 {/* Visual Overlays */}
                                 <View style={[styles.circleOverlay, { top: -40, left: -40 }]} />
                                 <View style={[styles.circleOverlay, { bottom: -60, right: -40, width: 150, height: 150, opacity: 0.1 }]} />
@@ -167,7 +168,7 @@ export const InsightsScreen = () => {
                         activeOpacity={0.8}
                     >
                         <Share2 size={18} color="#FFF" />
-                        <Text style={styles.shareActionText}>Export {range === '7d' ? '7D' : range.toUpperCase()} Report</Text>
+                        <Text style={styles.shareActionText}>Share {range === '7d' ? '7D' : range.toUpperCase()} Report</Text>
                     </TouchableOpacity>
                 )}
 
@@ -218,9 +219,6 @@ export const InsightsScreen = () => {
                                 );
                             })}
                         </View>
-                        <Text style={[styles.helperText, { color: theme.textSecondary }]}>
-                            Displaying recent activity patterns for the selected period.
-                        </Text>
                     </View>
                 )}
 

@@ -23,6 +23,7 @@ import { Flame, Send, Sparkles, BrainCircuit, Copy, Check, MessageCircle, ArrowR
 import { getGeminiChatResponse, parseSuggestions, ChatMessage } from '../utils/GeminiService';
 import { MoodConfig, MoodEntry } from '../types/mood';
 import { useRoute } from '@react-navigation/native';
+import MoodIcon from '../components/MoodIcon';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -178,7 +179,22 @@ export const HomeScreen = () => {
                 <View style={styles.headerRow}>
                     <View>
                         <Text style={[styles.greeting, { color: theme.textSecondary }]}>Lumina Mood</Text>
-                        <Text style={[styles.question, { color: theme.text }]}>How do you feel?</Text>
+                        {selectedMood ? (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                <MoodIcon
+                                    iconName={selectedMood.icon}
+                                    size={24}
+                                    color={selectedMood.color}
+                                    customImage={selectedMood.customImage}
+                                    strokeWidth={3}
+                                />
+                                <Text style={[styles.question, { color: selectedMood.color, marginLeft: 10 }]}>
+                                    Today I feel {selectedMood.label.toLowerCase()}
+                                </Text>
+                            </View>
+                        ) : (
+                            <Text style={[styles.question, { color: theme.text }]}>How do you feel?</Text>
+                        )}
                     </View>
                     {streak > 0 && (
                         <View style={styles.streakBadge}>
@@ -187,13 +203,6 @@ export const HomeScreen = () => {
                         </View>
                     )}
                 </View>
-
-                {selectedMood && (
-                    <View style={[styles.moodBar, { backgroundColor: selectedMood.color, borderRadius: theme.radius }]}>
-                        {React.createElement((Icons as any)[selectedMood.icon] || Icons.Smile, { size: 20, color: '#fff' })}
-                        <Text style={styles.moodBarText}>You're feeling {selectedMood.label}</Text>
-                    </View>
-                )}
             </View>
 
             {/* CONTENT AREA */}
@@ -282,32 +291,46 @@ export const HomeScreen = () => {
 
                 {/* FOOTER BAR */}
                 <View style={[styles.footerContainer, { borderTopColor: theme.border, paddingBottom: Math.max(insets.bottom, 15) }]}>
-                    {/* Mood Selector Row */}
-                    <View style={styles.moodSelectorRow}>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.moodSelectorScroll}
+                    >
                         {MOOD_CONFIGS.map((config) => {
-                            const IconComponent = (Icons as any)[config.icon] || Icons.Smile;
                             const isSelected = selectedMood?.level === config.level;
                             return (
                                 <TouchableOpacity
                                     key={config.level}
-                                    style={[
+                                    style={styles.moodItemContainer}
+                                    onPress={() => handleMoodSelect(config)}
+                                >
+                                    <View style={[
                                         styles.moodIconBtn,
                                         {
                                             backgroundColor: isSelected ? config.color : theme.card,
-                                            borderRadius: theme.radius
+                                            borderRadius: theme.radius * 1.5,
+                                            borderColor: isSelected ? config.color : theme.border,
+                                            borderWidth: isSelected ? 0 : 1
                                         }
-                                    ]}
-                                    onPress={() => handleMoodSelect(config)}
-                                >
-                                    <IconComponent
-                                        size={22}
-                                        color={isSelected ? "#fff" : config.color}
-                                        strokeWidth={2.5}
-                                    />
+                                    ]}>
+                                        <MoodIcon
+                                            iconName={config.icon}
+                                            size={28}
+                                            color={isSelected ? "#fff" : config.color}
+                                            customImage={config.customImage}
+                                            strokeWidth={2.5}
+                                        />
+                                    </View>
+                                    <Text style={[
+                                        styles.moodLabel,
+                                        { color: isSelected ? config.color : theme.textSecondary }
+                                    ]}>
+                                        {config.label}
+                                    </Text>
                                 </TouchableOpacity>
                             );
                         })}
-                    </View>
+                    </ScrollView>
 
                     {/* Chat Input Bar */}
                     {selectedMood && apiKey && (
@@ -350,39 +373,39 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     stickyHeader: {
-        backgroundColor: '#FFF',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
         paddingHorizontal: 20,
         paddingBottom: 15,
-        borderBottomWidth: 1,
         zIndex: 10,
     },
     headerRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
+        alignItems: 'baseline',
     },
     greeting: {
-        fontSize: 12,
-        fontWeight: '800',
+        fontSize: 11,
+        fontWeight: '700',
         textTransform: 'uppercase',
-        letterSpacing: 1,
+        letterSpacing: 1.5,
+        opacity: 0.6,
     },
     question: {
-        fontSize: 24,
+        fontSize: 26,
         fontWeight: '900',
+        letterSpacing: -0.5,
     },
     streakBadge: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#FFF1F2',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 15,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
     },
     streakText: {
         marginLeft: 4,
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: '800',
         color: '#F97316',
     },
@@ -403,46 +426,46 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     chatScrollContent: {
-        padding: 20,
-        paddingBottom: 40,
+        paddingTop: 20,
+        paddingBottom: 80,
     },
     emptyState: {
         flex: 1,
-        marginTop: 80,
         alignItems: 'center',
         justifyContent: 'center',
+        paddingTop: 100,
     },
     emptyText: {
-        textAlign: 'center',
         fontSize: 16,
-        fontWeight: '500',
+        textAlign: 'center',
         paddingHorizontal: 40,
         lineHeight: 24,
     },
     chatList: {
-        flex: 1,
+        paddingHorizontal: 20,
     },
     messageBubble: {
-        padding: 16,
-        marginBottom: 12,
         maxWidth: '85%',
-        position: 'relative',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        marginBottom: 15,
+        borderRadius: 20,
     },
     userBubble: {
         alignSelf: 'flex-end',
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#E2E8F0',
         borderBottomRightRadius: 4,
+    },
+    userText: {
+        color: '#1E293B',
+        fontSize: 15,
+        lineHeight: 22,
     },
     modelCard: {
         alignSelf: 'flex-start',
-        borderBottomLeftRadius: 4,
         borderWidth: 1,
         backgroundColor: '#FFFFFF',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-        elevation: 2,
+        borderBottomLeftRadius: 4,
     },
     modelHeader: {
         flexDirection: 'row',
@@ -452,41 +475,39 @@ const styles = StyleSheet.create({
     modelTitle: {
         fontSize: 11,
         fontWeight: '800',
-        marginLeft: 6,
         textTransform: 'uppercase',
+        marginLeft: 6,
+        letterSpacing: 1,
     },
     messageText: {
         fontSize: 15,
         lineHeight: 22,
     },
-    userText: {
-        color: '#374151',
-    },
     copyBtn: {
-        position: 'absolute',
-        top: 14,
-        right: 14,
+        alignSelf: 'flex-end',
+        padding: 8,
+        marginTop: 5,
     },
     quickQuestionsContainer: {
-        marginTop: 20,
+        marginTop: 10,
         marginBottom: 20,
     },
     quickHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 12,
-        marginLeft: 4,
+        paddingLeft: 4,
     },
     quickTitle: {
         fontSize: 12,
-        fontWeight: '800',
-        marginLeft: 6,
+        fontWeight: '700',
         textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        marginLeft: 8,
+        letterSpacing: 1,
     },
     quickBtn: {
         flexDirection: 'row',
-        alignItems: 'center',
+        flexShrink: 1,
         justifyContent: 'space-between',
         paddingHorizontal: 16,
         paddingVertical: 14,
@@ -495,50 +516,67 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFF',
     },
     quickBtnText: {
+        flex: 1,
         fontSize: 14,
-        fontWeight: '700',
-        flexShrink: 1,
+        fontWeight: '600',
+        lineHeight: 20,
         marginRight: 10,
     },
     footerContainer: {
         backgroundColor: '#FFFFFF',
         borderTopWidth: 1,
         paddingHorizontal: 20,
-        paddingTop: 15,
+        paddingTop: 12,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -4 },
         shadowOpacity: 0.05,
-        shadowRadius: 8,
+        shadowRadius: 10,
         elevation: 10,
     },
-    moodSelectorRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 15,
+    moodSelectorScroll: {
+        paddingVertical: 10,
+        paddingHorizontal: 5,
+    },
+    moodItemContainer: {
+        alignItems: 'center',
+        marginHorizontal: 8,
     },
     moodIconBtn: {
-        width: (SCREEN_WIDTH - 40 - 48) / 5,
-        aspectRatio: 1,
+        width: 60,
+        height: 60,
         justifyContent: 'center',
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 4,
+    },
+    moodLabel: {
+        fontSize: 11,
+        fontWeight: '700',
+        marginTop: 6,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     inputBar: {
         flexDirection: 'row',
-        backgroundColor: '#F9FAFB',
-        padding: 4,
         alignItems: 'center',
-        borderWidth: 1,
+        borderWidth: 1.5,
+        paddingLeft: 15,
+        paddingVertical: 5,
+        backgroundColor: '#F8FAFC',
+        marginBottom: 5,
     },
     input: {
         flex: 1,
-        height: 48,
-        paddingHorizontal: 15,
         fontSize: 15,
+        height: 45,
     },
     sendIconBtn: {
         width: 40,
         height: 40,
-        borderRadius: 20,
+        borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 4,
@@ -547,11 +585,14 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingBottom: 10,
+        paddingVertical: 10,
+        backgroundColor: '#F1F5F9',
+        borderRadius: 12,
+        marginBottom: 5,
     },
     tipBoxText: {
         fontSize: 12,
-        marginLeft: 6,
         fontWeight: '600',
-    }
+        marginLeft: 8,
+    },
 });

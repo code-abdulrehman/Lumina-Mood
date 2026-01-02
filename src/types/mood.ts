@@ -1,4 +1,4 @@
-export type MoodLevel = 'great' | 'good' | 'neutral' | 'down' | 'unhappy';
+export type MoodLevel = 'awesome' | 'great' | 'good' | 'neutral' | 'down' | 'unhappy' | 'awful';
 
 export interface ChatMessage {
     role: 'user' | 'model';
@@ -25,6 +25,7 @@ export interface MoodConfig {
     icon: string;
     label: string;
     color: string;
+    customImage?: string | number;
 }
 
 export interface Insight {

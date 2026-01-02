@@ -32,13 +32,15 @@ export interface TrendData {
 }
 
 export const getMoodDistribution = (moods: MoodEntry[]): MoodDistribution[] => {
-    const levels: MoodLevel[] = ['great', 'good', 'neutral', 'down', 'unhappy'];
+    const levels: MoodLevel[] = ['awesome', 'great', 'good', 'neutral', 'down', 'unhappy', 'awful'];
     const labels: Record<MoodLevel, string> = {
+        awesome: 'Awesome',
         great: 'Great',
         good: 'Good',
         neutral: 'Neutral',
         down: 'Down',
-        unhappy: 'Unhappy'
+        unhappy: 'Unhappy',
+        awful: 'Awful'
     };
 
     const total = moods.length || 1;
@@ -145,23 +147,31 @@ export const analyzeMoodPatterns = (moods: MoodEntry[]): Insight[] => {
     const activeTime = Object.entries(timeBuckets).sort((a, b) => b[1] - a[1])[0];
     if (activeTime && activeTime[1] >= 2) {
         insights.push({
-            title: `${activeTime[0].charAt(0).toUpperCase() + activeTime[0].slice(1)} Ritual`,
+            title: `${activeTime[0].charAt(0).toUpperCase() + activeTime[0].slice(1)} Streak`,
             description: `You are most reflective during the ${activeTime[0]} hours.`,
             type: 'time',
         });
     }
 
     // 3. Positivity Score
-    const points: Record<MoodLevel, number> = { great: 5, good: 4, neutral: 3, down: 2, unhappy: 1 };
-    const avgScore = moods.reduce((acc, m) => acc + points[m.level], 0) / moods.length;
+    const points: Record<MoodLevel, number> = {
+        awesome: 7,
+        great: 6,
+        good: 5,
+        neutral: 4,
+        down: 3,
+        unhappy: 2,
+        awful: 1
+    };
+    const avgScore = moods.reduce((acc, m) => acc + (points[m.level] || 4), 0) / moods.length;
 
-    if (avgScore >= 4) {
+    if (avgScore >= 5.5) {
         insights.push({
             title: 'Positivity Peak',
             description: 'Your mood average is exceptionally high. You are thriving!',
             type: 'pattern',
         });
-    } else if (avgScore <= 2.5) {
+    } else if (avgScore <= 3.5) {
         insights.push({
             title: 'Heavy Period',
             description: 'You have been feeling a bit lower than usual. Take some time for self-care.',
