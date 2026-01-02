@@ -554,7 +554,7 @@ export const HomeScreen = () => {
                                                 styles.compactMoodBtn,
                                                 {
                                                     opacity: isSelected ? 1 : 0.6,
-                                                    transform: [{ scale: isSelected ? 1.1 : 0.9 }]
+                                                    transform: [{ scale: isSelected ? 1.5 : 0.9 }]
                                                 }
                                             ]}
                                             onPress={() => handleMoodSelect(config)}
@@ -854,6 +854,7 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         backgroundColor: '#F8FAFC',
         marginBottom: 5,
+        marginHorizontal: 8,
     },
     input: {
         flex: 1,
@@ -863,7 +864,7 @@ const styles = StyleSheet.create({
     sendIconBtn: {
         width: 40,
         height: 40,
-        borderRadius: 12,
+        borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 4,
