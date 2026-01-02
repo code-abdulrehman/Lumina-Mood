@@ -89,7 +89,7 @@ export const InsightsScreen = () => {
         try {
             const uri = await captureRef(reportRef, { format: 'png', quality: 1.0 });
             if (Platform.OS === 'web') {
-                const text = `📊 My Lumina ${reportData?.title}\n${reportData?.summary}\nMood: ${reportData?.mainMoodLabel}`;
+                const text = `📊 My Feeling ${reportData?.title}\n${reportData?.summary}\nMood: ${reportData?.mainMoodLabel}`;
                 await Share.share({ message: text });
                 return;
             }
@@ -172,7 +172,7 @@ export const InsightsScreen = () => {
                                         </View>
                                         <View style={styles.brandTag}>
                                             <Zap size={10} color="#FFF" fill="#FFF" />
-                                            <Text style={styles.brandTagText}>LUMINA INSIGHTS</Text>
+                                            <Text style={styles.brandTagText}>FEELING INSIGHTS</Text>
                                         </View>
                                     </View>
                                 </View>

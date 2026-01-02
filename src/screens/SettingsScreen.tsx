@@ -85,10 +85,10 @@ export const SettingsScreen = () => {
                             resizeMode="contain"
                         />
                         <View style={styles.brandingTextContainer}>
-                            <Text style={[styles.brandTitle, { color: theme.text }]}>Lumina Mood</Text>
+                            <Text style={[styles.brandTitle, { color: theme.text }]}>Feeling</Text>
                             <View style={styles.taglineRow}>
                                 <BrainCircuit size={12} color={primaryColor} />
-                                <Text style={[styles.brandTagline, { color: theme.textSecondary }]}>Neural Intelligence AI</Text>
+                                <Text style={[styles.brandTagline, { color: theme.textSecondary }]}>Empathetic Tracking</Text>
                             </View>
                         </View>
                     </View>
@@ -119,7 +119,7 @@ export const SettingsScreen = () => {
                                     onPress={() => updatePrimaryColor(color)}
                                 >
                                     {primaryColor === color && (
-                                        <Check size={20} color={theme.card}/>
+                                        <Check size={20} color={theme.card} />
                                     )}
                                 </TouchableOpacity>
                             ))}
@@ -183,7 +183,7 @@ export const SettingsScreen = () => {
                     </View>
 
                     <View style={styles.footer}>
-                        <Text style={[styles.versionText, { color: theme.textSecondary }]}>Lumina Mood v1.4.0</Text>
+                        <Text style={[styles.versionText, { color: theme.textSecondary }]}>Feeling v1.4.0</Text>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>

@@ -32,7 +32,7 @@ export const getGeminiChatResponse = async (
 
             const genAI = new GoogleGenerativeAI(apiKey);
 
-            const systemPrompt = `You are Lumina, a warm mood companion.
+            const systemPrompt = `You are Feeling, a warm mood companion.
             The user is currently feeling "${moodLabel}".
             
             INSTRUCTIONS:

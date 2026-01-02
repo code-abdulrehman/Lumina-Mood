@@ -348,7 +348,7 @@ export const HomeScreen = () => {
             <View style={[styles.stickyHeader, { paddingTop: insets.top + 10, borderBottomColor: theme.border }]}>
                 <View style={styles.headerRow}>
                     <View>
-                        <Text style={[styles.greeting, { color: theme.textSecondary }]}>Lumina Mood</Text>
+                        <Text style={[styles.greeting, { color: theme.textSecondary }]}>Feeling</Text>
                         {selectedMood ? (
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                 <MoodIcon

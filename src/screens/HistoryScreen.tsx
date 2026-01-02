@@ -79,7 +79,7 @@ export const HistoryScreen = () => {
             {moods.length === 0 ? (
                 <View style={styles.emptyState}>
                     <HistoryIcon size={80} color={theme.border} strokeWidth={1} />
-                    <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No history found. Talk to Lumina to start your journal.</Text>
+                    <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No history found. Talk to Feeling to start your journal.</Text>
                 </View>
             ) : (
                 <FlatList

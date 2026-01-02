@@ -66,7 +66,7 @@ export const StreakScreen = () => {
         try {
             const uri = await captureRef(viewShotRef, { format: 'png', quality: 1.0 });
             if (Platform.OS === 'web') {
-                const text = `🔥 I achieved a ${stats.maxStreak}-day streak in ${format(viewDate, 'MMMM')} on Lumina Mood! 🧘‍♂️✨`;
+                const text = `🔥 I achieved a ${stats.maxStreak}-day streak in ${format(viewDate, 'MMMM')} on Feeling! 🧘‍♂️✨`;
                 await Share.share({ message: text });
                 return;
             }
@@ -120,7 +120,7 @@ export const StreakScreen = () => {
                                     </View>
                                     <View style={styles.brandBadge}>
                                         <Zap size={12} color="#FFF" fill="#FFF" />
-                                        <Text style={styles.brandText}>LUMINA</Text>
+                                        <Text style={styles.brandText}>FEELING</Text>
                                     </View>
                                 </View>
                             </View>
