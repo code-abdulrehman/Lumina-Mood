@@ -2,9 +2,11 @@ import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { MoodProvider } from './src/context/MoodContext';
+import { ToastProvider } from './src/context/ToastContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { APP_ROUTES } from './src/navigation/routes';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import {
   useFonts,
   NunitoSans_400Regular,
@@ -65,12 +67,16 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <MoodProvider>
-        <NavigationContainer linking={linking}>
-          <RootNavigator />
-          <StatusBar style="dark" />
-        </NavigationContainer>
-      </MoodProvider>
+      <ErrorBoundary>
+        <ToastProvider>
+          <MoodProvider>
+            <NavigationContainer linking={linking}>
+              <RootNavigator />
+              <StatusBar style="dark" />
+            </NavigationContainer>
+          </MoodProvider>
+        </ToastProvider>
+      </ErrorBoundary>
     </SafeAreaProvider>
   );
 }

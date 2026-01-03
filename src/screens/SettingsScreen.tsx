@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMood } from '../context/MoodContext';
 import { ScreenWrapper } from '../components/ScreenWrapper';
+import { useToast } from '../context/ToastContext';
 import { ExternalLink, Key, ShieldCheck, Sparkles, Trash2, Palette, Activity, Check, X, BrainCircuit, PlayCircle } from 'lucide-react-native';
 import { validateApiKey } from '../utils/GeminiService';
 import * as Clipboard from 'expo-clipboard';
@@ -35,6 +36,7 @@ const COLOR_OPTIONS = [
 
 export const SettingsScreen = () => {
     const insets = useSafeAreaInsets();
+    const { showToast } = useToast();
     const { apiKey, updateApiKey, clearAllData, primaryColor, updatePrimaryColor, theme, userName, interests, updateUserSettings } = useMood();
     const [keyInput, setKeyInput] = useState(apiKey || '');
     const [nameInput, setNameInput] = useState(userName || '');
@@ -56,23 +58,26 @@ export const SettingsScreen = () => {
     const handleSave = async () => {
         setIsSaving(true);
 
-        // Validate API Key if it changed
-        if (keyInput !== apiKey) {
-            const validation = await validateApiKey(keyInput);
+        const currentKey = apiKey || '';
+        const newKey = keyInput.trim();
+
+        // Validate API Key only if it changed and is not empty
+        if (newKey !== currentKey && newKey.length > 0) {
+            const validation = await validateApiKey(newKey);
             if (!validation.valid) {
                 setIsSaving(false);
-                Alert.alert("Invalid API Key", validation.error || "Please check your key and try again.");
+                showToast(validation.error || "Please check your key and try again.", 'error');
                 return;
             }
         }
 
         await updateUserSettings({
-            apiKey: keyInput,
-            userName: nameInput,
+            apiKey: newKey,
+            userName: nameInput.trim(),
             interests: selectedInterests
         });
         setIsSaving(false);
-        Alert.alert("Success", "Settings updated.");
+        showToast("Settings updated successfully.", 'success');
     };
 
     const handleClearData = () => {
@@ -192,6 +197,12 @@ export const SettingsScreen = () => {
                                     );
                                 })}
                             </View>
+                            <TouchableOpacity
+                                style={[styles.saveButton, { backgroundColor: theme.primary, borderRadius: theme.radius, marginTop: 24, marginBottom: 0 }]}
+                                onPress={handleSave}
+                            >
+                                <Text style={styles.saveButtonText}>Save Profile</Text>
+                            </TouchableOpacity>
                         </View>
 
                         {/* THEME SECTION */}

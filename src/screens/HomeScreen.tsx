@@ -22,11 +22,12 @@ import * as Icons from 'lucide-react-native';
 import { MOOD_CONFIGS } from '../data/moods';
 import { useMood } from '../context/MoodContext';
 import { ScreenWrapper } from '../components/ScreenWrapper';
+import { useToast } from '../context/ToastContext';
 import { calculateStreak } from '../utils/patternAnalyzer';
 import { Flame, Send, Sparkles, BrainCircuit, Copy, Check, MessageCircle, ArrowRight } from 'lucide-react-native';
 import { getGeminiChatResponse, parseSuggestions, ChatMessage } from '../utils/GeminiService';
 import { MoodConfig, MoodEntry } from '../types/mood';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import MoodIcon from '../components/MoodIcon';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -53,6 +54,7 @@ const MarkdownText = ({ text, style, primaryColor }: { text: string, style: any,
 export const HomeScreen = () => {
     const insets = useSafeAreaInsets();
     const route = useRoute<any>();
+    const navigation = useNavigation<any>();
     const { addMood, updateMoodEntry, moods, apiKey, theme, userName, interests } = useMood();
     const streak = calculateStreak(moods);
 
@@ -294,6 +296,10 @@ export const HomeScreen = () => {
         }
     }, [route.params]);
 
+    const { showToast } = useToast();
+
+    // ... (rest of hooks)
+
     const handleMoodSelect = async (config: MoodConfig) => {
         if (isThinking) return;
 
@@ -327,8 +333,9 @@ export const HomeScreen = () => {
                 await updateMoodEntry(entry.id, { chatHistory: newHistory });
                 scrollToBottom();
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Mood Select Error:", err);
+            showToast(err?.message || "Failed to start conversation.", 'error');
             setIsThinking(false);
         } finally {
             if (apiKey) setIsThinking(false);
@@ -358,8 +365,9 @@ export const HomeScreen = () => {
             setSuggestions(newSugs);
             await updateMoodEntry(currentEntry.id, { chatHistory: finalHistory });
             scrollToBottom(200);
-        } catch (err) {
+        } catch (err: any) {
             console.error("SendMessage Gemini Error:", err);
+            showToast(err?.message || "Failed to send message. Please try again.", 'error');
         } finally {
             setIsThinking(false);
         }
@@ -562,7 +570,7 @@ export const HomeScreen = () => {
                                                 onPress={() => handleQuickQuestionClick(String(s))}
                                             >
                                                 <Text style={[styles.quickBtnText, { color: theme.primary }]} numberOfLines={2}>{String(s)}
-                                                    <ArrowRight size={14} color={theme.primary} style={{ marginLeft: 5, marginTop: 2 }}/>
+                                                    <ArrowRight size={14} color={theme.primary} style={{ marginLeft: 5, marginTop: 2 }} />
                                                 </Text>
                                             </TouchableOpacity>
                                         ))}
@@ -645,10 +653,10 @@ export const HomeScreen = () => {
                         )}
 
                         {!selectedMood && !apiKey && (
-                            <View style={styles.tipBox}>
+                            <TouchableOpacity style={styles.tipBox} onPress={() => navigation.navigate('Settings')}>
                                 <Sparkles size={14} color={theme.primary} />
                                 <Text style={[styles.tipBoxText, { color: theme.textSecondary }]}>Add API key in Settings for AI chat.</Text>
-                            </View>
+                            </TouchableOpacity>
                         )}
                     </View>
                 </KeyboardAvoidingView>

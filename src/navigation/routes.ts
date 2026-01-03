@@ -1,4 +1,4 @@
-import { Home, BarChart2, History, Flame, Settings, SmilePlus } from 'lucide-react-native';
+import { Activity, History, Flame, Smile, Bolt } from 'lucide-react-native';
 import { HomeScreen } from '../screens/HomeScreen';
 import { InsightsScreen } from '../screens/InsightsScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
@@ -18,7 +18,7 @@ export const APP_ROUTES: RouteConfig[] = [
         name: 'Insights',
         path: 'insights',
         component: InsightsScreen,
-        icon: BarChart2,
+        icon: Activity,
         label: 'Insights',
     },
     {
@@ -32,7 +32,7 @@ export const APP_ROUTES: RouteConfig[] = [
         name: 'Mood',
         path: 'mood',
         component: HomeScreen,
-        icon: SmilePlus,
+        icon: Smile,
         label: 'Mood',
     },
     {
@@ -46,7 +46,7 @@ export const APP_ROUTES: RouteConfig[] = [
         name: 'Settings',
         path: 'settings',
         component: SettingsScreen,
-        icon: Settings,
+        icon: Bolt,
         label: 'Settings',
     },
 ];

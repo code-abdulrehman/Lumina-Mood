@@ -108,7 +108,7 @@ export const InsightsScreen = () => {
             onPress={() => setRange(value)}
             style={[
                 styles.filterBtn,
-                { backgroundColor: range === value ? primaryColor : theme.textSecondary+"20" }
+                { backgroundColor: range === value ? primaryColor : theme.textSecondary+"15" }
             ]}
         >
             <Text style={[styles.filterText, { color: range === value ? '#fff' : theme.textSecondary }]}>{label}</Text>
@@ -129,7 +129,7 @@ export const InsightsScreen = () => {
                         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Patterns focused on your persistence.</Text>
                     </View>
 
-                    <View style={[styles.filterRow, { backgroundColor: theme.background, padding: 4, borderRadius: 24 }]}>
+                    <View style={[styles.filterRow, { backgroundColor: theme.background, padding: 4, borderRadius: 24, gap: 2 }]}>
                         <FilterBtn label="7D" value="7d" />
                         <FilterBtn label="1M" value="1m" />
                         <FilterBtn label="1Y" value="1y" />
