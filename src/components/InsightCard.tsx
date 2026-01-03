@@ -17,7 +17,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight }) => {
 
     return (
         <View style={[styles.container, { backgroundColor: theme.card }]}>
-            <View style={styles.glow} />
+            <View style={[styles.glow, { backgroundColor: primaryColor + '13' }]} />
             <View style={styles.content}>
                 <View style={styles.header}>
                     {insight.topMoods && insight.topMoods.length > 0 ? (
@@ -97,7 +97,6 @@ const styles = StyleSheet.create({
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: 'rgba(99, 102, 241, 0.05)',
         transform: [{ scale: 2 }],
     },
     content: {

@@ -1,15 +1,11 @@
 import React from 'react';
-import { View, Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { useMood } from '../context/MoodContext';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MeshBackground } from '../components/MeshBackground';
-import { HomeScreen } from '../screens/HomeScreen';
-import { InsightsScreen } from '../screens/InsightsScreen';
-import { HistoryScreen } from '../screens/HistoryScreen';
-import { StreakScreen } from '../screens/StreakScreen';
-import { SettingsScreen } from '../screens/SettingsScreen';
-import { Home, BarChart2, History, Flame, Settings } from 'lucide-react-native';
+import { APP_ROUTES } from './routes';
+
 const Tab = createBottomTabNavigator();
 
 export const TabNavigator = () => {
@@ -19,9 +15,19 @@ export const TabNavigator = () => {
     return (
         <MeshBackground>
             <Tab.Navigator
+                initialRouteName="Mood"
                 screenOptions={{
                     headerShown: false,
-                    sceneStyle: { backgroundColor: 'transparent' },
+                    // Fix for web: ensure proper stacking context
+                    sceneStyle: Platform.OS === 'web'
+                        ? {
+                            backgroundColor: 'transparent',
+                            position: 'absolute' as any,
+                            width: '100%',
+                            height: '100%',
+                        }
+                        : { backgroundColor: 'transparent' },
+                    lazy: true,
                     tabBarStyle: {
                         backgroundColor: theme.background,
                         borderTopLeftRadius: 40,
@@ -32,55 +38,31 @@ export const TabNavigator = () => {
                         shadowOpacity: 0.2,
                         shadowRadius: 1,
                         elevation: 3,
-                        // Use automatic height with padding from insets
                         height: (Platform.OS === 'ios' ? 55 : 60) + insets.bottom,
                         paddingBottom: insets.bottom || 10,
                         paddingTop: 10,
                     },
                     tabBarActiveTintColor: primaryColor,
-                    tabBarInactiveTintColor: theme.text + '60',
+                    tabBarInactiveTintColor: theme.text + '50',
                     tabBarLabelStyle: {
                         fontSize: 10,
                         fontWeight: '700',
                         marginBottom: Platform.OS === 'android' ? 5 : 0,
                     },
                 }}
+                detachInactiveScreens={true}
             >
-                <Tab.Screen
-                    name="Home"
-                    component={HomeScreen}
-                    options={{
-                        tabBarIcon: ({ color }) => <Home size={22} color={color} />,
-                    }}
-                />
-                <Tab.Screen
-                    name="Streak"
-                    component={StreakScreen}
-                    options={{
-                        tabBarIcon: ({ color }) => <Flame size={22} color={color} />,
-                    }}
-                />
-                <Tab.Screen
-                    name="Insights"
-                    component={InsightsScreen}
-                    options={{
-                        tabBarIcon: ({ color }) => <BarChart2 size={22} color={color} />,
-                    }}
-                />
-                <Tab.Screen
-                    name="History"
-                    component={HistoryScreen}
-                    options={{
-                        tabBarIcon: ({ color }) => <History size={22} color={color} />,
-                    }}
-                />
-                <Tab.Screen
-                    name="Settings"
-                    component={SettingsScreen}
-                    options={{
-                        tabBarIcon: ({ color }) => <Settings size={22} color={color} />,
-                    }}
-                />
+                {APP_ROUTES.map((route) => (
+                    <Tab.Screen
+                        key={route.name}
+                        name={route.name}
+                        component={route.component}
+                        options={{
+                            tabBarLabel: route.label,
+                            tabBarIcon: ({ color }) => <route.icon size={22} color={color} />,
+                        }}
+                    />
+                ))}
             </Tab.Navigator>
         </MeshBackground>
     );

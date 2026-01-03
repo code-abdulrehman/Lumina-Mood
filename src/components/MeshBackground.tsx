@@ -13,25 +13,25 @@ export const MeshBackground = ({ children }: { children?: React.ReactNode }) => 
             <View style={StyleSheet.absoluteFill}>
                 <Svg height="100%" width="100%" viewBox={`0 0 ${width} ${height}`}>
                     <Defs>
-                        {/* Indigo/Violet */}
                         <RadialGradient id="grad1" cx="20%" cy="10%" rx="80%" ry="80%" fx="20%" fy="10%" gradientUnits="userSpaceOnUse">
-                            <Stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.15" />
-                            <Stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
+                            <Stop offset="0%" stopColor="#f63f45ff" stopOpacity="0.15" />
+                            <Stop offset="100%" stopColor="#a22727ff" stopOpacity="0" />
                         </RadialGradient>
-                        {/* Amber/Orange */}
                         <RadialGradient id="grad2" cx="85%" cy="25%" rx="70%" ry="70%" fx="85%" fy="25%" gradientUnits="userSpaceOnUse">
                             <Stop offset="0%" stopColor="#F59E0B" stopOpacity="0.12" />
                             <Stop offset="100%" stopColor="#F59E0B" stopOpacity="0" />
                         </RadialGradient>
-                        {/* Teal/Emerald */}
                         <RadialGradient id="grad3" cx="15%" cy="70%" rx="60%" ry="60%" fx="15%" fy="70%" gradientUnits="userSpaceOnUse">
-                            <Stop offset="0%" stopColor="#008080" stopOpacity="0.1" />
-                            <Stop offset="100%" stopColor="#008080" stopOpacity="0" />
+                            <Stop offset="0%" stopColor="#005580ff" stopOpacity="0.1" />
+                            <Stop offset="100%" stopColor="#3aacacff" stopOpacity="0" />
                         </RadialGradient>
-                        {/* Pink/Coral */}
                         <RadialGradient id="grad4" cx="80%" cy="85%" rx="80%" ry="80%" fx="80%" fy="85%" gradientUnits="userSpaceOnUse">
-                            <Stop offset="0%" stopColor="#EC4899" stopOpacity="0.12" />
-                            <Stop offset="100%" stopColor="#EC4899" stopOpacity="0" />
+                            <Stop offset="0%" stopColor="#fc96e8ff" stopOpacity="0.12" />
+                            <Stop offset="100%" stopColor="#e575e1ff" stopOpacity="0" />
+                        </RadialGradient>
+                        <RadialGradient id="grad5" cx="80%" cy="85%" rx="80%" ry="80%" fx="80%" fy="85%" gradientUnits="userSpaceOnUse">
+                            <Stop offset="0%" stopColor="#48ec66ff" stopOpacity="0.12" />
+                            <Stop offset="100%" stopColor="#48ec5eff" stopOpacity="0" />
                         </RadialGradient>
                     </Defs>
 

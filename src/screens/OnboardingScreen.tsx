@@ -14,23 +14,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMood } from '../context/MoodContext';
 import { MeshBackground } from '../components/MeshBackground';
-import { ChevronRight, Music, Video, BookOpen, Newspaper, Gamepad2, Pizza, TreePalm, Dumbbell, Sparkles, Key, ExternalLink, AlertCircle, X } from 'lucide-react-native';
+import { ChevronRight, Sparkles, Key, ExternalLink, AlertCircle, X, PlayCircle } from 'lucide-react-native';
 import { validateApiKey } from '../utils/GeminiService';
 import { Alert, Linking, ActivityIndicator, Keyboard } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import { BlurView } from 'expo-blur';
+import { INTEREST_OPTIONS } from '../data/interests';
 
 const { width } = Dimensions.get('window');
-
-const INTEREST_OPTIONS = [
-    { id: 'music', label: 'Music', icon: Music, color: '#FF6B6B' },
-    { id: 'videos', label: 'Videos', icon: Video, color: '#4D96FF' },
-    { id: 'books', label: 'Books', icon: BookOpen, color: '#6BCB77' },
-    { id: 'news', label: 'News', icon: Newspaper, color: '#FFD93D' },
-    { id: 'gaming', label: 'Gaming', icon: Gamepad2, color: '#9B51E0' },
-    { id: 'food', label: 'Food', icon: Pizza, color: '#F2994A' },
-    { id: 'nature', label: 'Nature', icon: TreePalm, color: '#27AE60' },
-    { id: 'fitness', label: 'Fitness', icon: Dumbbell, color: '#EB5757' },
-];
 
 export const OnboardingScreen = () => {
     const insets = useSafeAreaInsets();
@@ -46,7 +37,7 @@ export const OnboardingScreen = () => {
     const handleToggleInterest = (id: string) => {
         if (selectedInterests.includes(id)) {
             setSelectedInterests(selectedInterests.filter(i => i !== id));
-        } else if (selectedInterests.length < 3) {
+        } else if (selectedInterests.length < 5) {
             setSelectedInterests([...selectedInterests, id]);
         }
     };
@@ -162,35 +153,50 @@ export const OnboardingScreen = () => {
 
     const renderStep3 = () => (
         <View style={styles.stepContainer}>
+            <View style={styles.iconCircle}>
+                <Sparkles color={theme.primary} size={32} />
+            </View>
             <Text style={[styles.title, { color: theme.text }]}>Pick your interests</Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-                Choose up to 3 things you love. This helps me suggest relevant ways to improve your mood.
+                Choose up to 5 things you love. This helps me verify what resonates with you.
             </Text>
 
-            <View style={styles.interestsGrid}>
+            <View style={styles.interestsContainer}>
                 {INTEREST_OPTIONS.map((item) => {
                     const isSelected = selectedInterests.includes(item.id);
                     const Icon = item.icon;
                     return (
                         <TouchableOpacity
                             key={item.id}
+                            onPress={() => handleToggleInterest(item.id)}
+                            activeOpacity={0.7}
                             style={[
-                                styles.interestCard,
+                                styles.interestBadge,
+                                styles.boxShadow,
                                 {
+                                    backgroundColor: isSelected ? theme.primary : theme.card,
                                     borderColor: isSelected ? theme.primary : theme.border,
-                                    backgroundColor: isSelected ? `${theme.primary}10` : '#fff',
-                                    borderRadius: theme.radius,
+                                    shadowColor: isSelected ? theme.primary : '#000',
+                                    shadowOpacity: isSelected ? 0.3 : 0.05,
+                                    shadowRadius: isSelected ? 2 : 1,
+                                    elevation: isSelected ? 2 : 1,
                                 }
                             ]}
-                            onPress={() => handleToggleInterest(item.id)}
                         >
-                            <View style={[styles.interestIconContainer, { backgroundColor: `${item.color}20` }]}>
-                                <Icon color={item.color} size={24} />
-                            </View>
-                            <Text style={[
-                                styles.interestLabel,
-                                { color: isSelected ? theme.primary : theme.text }
-                            ]}>
+                            <Icon
+                                color={isSelected ? '#fff' : item.color}
+                                size={18}
+                                style={{ marginRight: 6 }}
+                            />
+                            <Text
+                                style={[
+                                    styles.interestLabel,
+                                    {
+                                        color: isSelected ? '#fff' : theme.text,
+                                        fontWeight: isSelected ? '700' : '600'
+                                    }
+                                ]}
+                            >
                                 {item.label}
                             </Text>
                         </TouchableOpacity>
@@ -200,7 +206,7 @@ export const OnboardingScreen = () => {
 
             <View style={styles.footer}>
                 <Text style={[styles.selectionCount, { color: theme.textSecondary }]}>
-                    {selectedInterests.length} / 3 selected
+                    {selectedInterests.length}/5 selected
                 </Text>
                 <TouchableOpacity
                     style={[
@@ -277,11 +283,19 @@ export const OnboardingScreen = () => {
             )}
 
             <TouchableOpacity
-                style={styles.linkButton}
+                style={[styles.linkButton, { marginBottom: 10 }]}
                 onPress={() => Linking.openURL('https://aistudio.google.com/app/apikey')}
             >
                 <Text style={[styles.linkText, { color: theme.primary }]}>Get a free key here</Text>
                 <ExternalLink size={14} color={theme.primary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() => Linking.openURL('https://www.youtube.com/shorts/7_HFmLrfZHg')}
+            >
+                <Text style={[styles.linkText, { color: theme.primary }]}>Watch Tutorial Video</Text>
+                <PlayCircle size={14} color={theme.primary} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -431,7 +445,7 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         height: 60,
-        fontSize: 18,
+        fontSize: 14,
         fontWeight: '600',
     },
     errorContainer: {
@@ -475,39 +489,42 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         marginRight: 8,
     },
-    interestsGrid: {
+    interestsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        width: '100%',
-    },
-    interestCard: {
-        width: '48%',
-        padding: 16,
-        marginBottom: 16,
-        borderWidth: 2,
-        alignItems: 'center',
-    },
-    interestIconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
         justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 12,
+        gap: 3,
+        width: '100%',
+        paddingHorizontal: 10,
     },
-    interestLabel: {
-        fontSize: 14,
-        fontWeight: '700',
-    },
+
     footer: {
         width: '100%',
-        marginTop: 20,
+        marginTop: 40,
         alignItems: 'center',
     },
     selectionCount: {
         fontSize: 14,
         fontWeight: '600',
         marginBottom: 16,
-    }
+    },
+    interestBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        borderRadius: 30,
+        elevation: 2,
+    },
+    interestLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    boxShadow: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.02,
+        shadowRadius: 1,
+        elevation: 1,
+    },
 });
