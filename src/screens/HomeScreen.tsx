@@ -59,8 +59,11 @@ export const HomeScreen = () => {
     const { addMood, updateMoodEntry, moods, apiKey, theme, userName, interests } = useMood();
     const streak = calculateStreak(moods);
     const tabBarHeight = useBottomTabBarHeight();
-    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+    const footerBottomSpacing = isKeyboardVisible
+        ? 10
+        : tabBarHeight-65;
     useEffect(() => {
         const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
         const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
@@ -527,7 +530,7 @@ export const HomeScreen = () => {
 
                 {/* CONTENT AREA */}
                 <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={{ flex: 1 }}
                     keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
                 >
@@ -672,10 +675,10 @@ export const HomeScreen = () => {
 
                     {/* FOOTER BAR */}
                     <View style={[
-                        styles.footerContainer,
+                        // styles.footerContainer,
                         {
                             borderTopColor: theme.border,
-                            paddingBottom: 10,
+                            paddingBottom: footerBottomSpacing,
                             marginBottom: isKeyboardVisible ? 75 : 75, // Adjust margin based on keyboard
                             borderTopWidth: selectedMood ? 0 : 0,
                             paddingHorizontal: selectedMood ? 0 : 20,
@@ -683,6 +686,8 @@ export const HomeScreen = () => {
                             zIndex: 100, // Ensure it sits correctly in stack
                         }
                     ]}>
+
+
                         {selectedMood && (
                             <View
                                 style={styles.infiniteFooterWrapper}
@@ -929,9 +934,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
         marginRight: 10,
-    },
-    footerContainer: {
-        paddingHorizontal: 20,
     },
     compactMoodScroll: {
         paddingVertical: 20,
