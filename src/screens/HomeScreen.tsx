@@ -359,8 +359,32 @@ export const HomeScreen = () => {
             }
         } catch (err: any) {
             console.error("Mood Select Error:", err);
-            showToast(err?.message || "Failed to start conversation.", 'error');
-            setIsThinking(false);
+            const errorMsg = err?.message || "Failed to start conversation.";
+
+            // Show error in chat and provide fallback suggestions
+            const errorChatMsg = errorMsg.includes('Quota') || errorMsg.includes('Too Many Requests')
+                ? `${errorMsg}\n\nDon't worry, you can still track your mood! The AI companion will be back soon. 💚`
+                : `I'm having trouble connecting right now. ${errorMsg}`;
+
+            const fallbackSuggestions = errorMsg.includes('Quota') || errorMsg.includes('Too Many Requests')
+                ? [
+                    "Wait and try again later?",
+                    "Track mood without AI?",
+                    "Check Settings for API key?"
+                ]
+                : [
+                    "Try again?",
+                    "Check internet connection?",
+                    "Go to Settings?"
+                ];
+
+            const newHistory: ChatMessage[] = [{ role: 'model', text: errorChatMsg }];
+            setChatHistory(newHistory);
+            setSuggestions(fallbackSuggestions);
+            if (currentEntry) {
+                await updateMoodEntry(currentEntry.id, { chatHistory: newHistory });
+            }
+            scrollToBottom();
         } finally {
             if (apiKey) setIsThinking(false);
         }
@@ -391,13 +415,58 @@ export const HomeScreen = () => {
             scrollToBottom(200);
         } catch (err: any) {
             console.error("SendMessage Gemini Error:", err);
-            showToast(err?.message || "Failed to send message. Please try again.", 'error');
+            const errorMsg = err?.message || "Failed to send message. Please try again.";
+
+            // Show error in chat and provide fallback suggestions
+            const errorChatMsg = errorMsg.includes('Quota') || errorMsg.includes('Too Many Requests')
+                ? `${errorMsg}\n\nYou can continue tracking your mood. The AI will be available again soon! 💚`
+                : `I'm having trouble responding. ${errorMsg}`;
+
+            const fallbackSuggestions = errorMsg.includes('Quota') || errorMsg.includes('Too Many Requests')
+                ? [
+                    "Continue without AI?",
+                    "Try again in a few minutes?",
+                    "Update API key in Settings?"
+                ]
+                : [
+                    "Retry message?",
+                    "Check connection?",
+                    "Go to Settings?"
+                ];
+
+            const finalHistory: ChatMessage[] = [...updatedHistory, { role: 'model', text: errorChatMsg }];
+            setChatHistory(finalHistory);
+            setSuggestions(fallbackSuggestions);
+            await updateMoodEntry(currentEntry.id, { chatHistory: finalHistory });
+            scrollToBottom(200);
         } finally {
             setIsThinking(false);
         }
     };
 
     const handleQuickQuestionClick = (question: string) => {
+        // Handle special fallback actions
+        if (question.includes("Settings") || question.includes("API key")) {
+            navigation.navigate('Settings' as never);
+            return;
+        }
+
+        if (question.includes("Track mood without AI") || question.includes("Continue without AI")) {
+            setSuggestions([]);
+            showToast("Mood saved locally! You can check History & Insights.", 'success');
+            return;
+        }
+
+        if (question.includes("Wait and try again") || question.includes("Try again in a few minutes")) {
+            setSuggestions([]);
+            return;
+        }
+
+        if (question.includes("Check connection")) {
+            showToast("Please check your internet connection.", 'info');
+            return;
+        }
+
         handleSendMessage(question);
     };
 

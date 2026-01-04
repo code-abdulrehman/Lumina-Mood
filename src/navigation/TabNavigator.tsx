@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MeshBackground } from '../components/MeshBackground';
 import { APP_ROUTES } from './routes';
+import { AnimatedMoodIcon } from '../components/AnimatedMoodIcon';
 
 const Tab = createBottomTabNavigator();
 
@@ -30,8 +31,8 @@ export const TabNavigator = () => {
                     lazy: true,
                     tabBarStyle: {
                         backgroundColor: theme.background,
-                        borderTopLeftRadius: 20,
-                        borderTopRightRadius: 20,
+                        borderTopLeftRadius: 30,
+                        borderTopRightRadius: 30,
                         borderTopWidth: 0,
                         shadowColor: '#000',
                         shadowOffset: { width: 0, height: -0.5 },
@@ -46,8 +47,8 @@ export const TabNavigator = () => {
                         left: 0,
                         right: 0,
                     },
-                    tabBarActiveTintColor: theme.text,
-                    tabBarInactiveTintColor: theme.text + '80', // Slightly more visible than 50
+                    tabBarActiveTintColor: primaryColor,
+                    tabBarInactiveTintColor: theme.textSecondary,
                     tabBarLabelStyle: {
                         fontSize: 10,
                         fontWeight: '700',
@@ -56,64 +57,85 @@ export const TabNavigator = () => {
                 }}
                 detachInactiveScreens={true}
             >
-                {APP_ROUTES.map((route) => (
-                    <Tab.Screen
-                        key={route.name}
-                        name={route.name}
-                        component={route.component}
-                        options={{
-                            tabBarLabel: ({ focused, color }) => {
-                                if (focused) return null;
-                                return (
-                                    <Text style={{
-                                        color,
-                                        fontSize: 10,
-                                        fontWeight: '700',
-                                        marginBottom: Platform.OS === 'android' ? 5 : 0
-                                    }}>
-                                        {route.label}
-                                    </Text>
-                                );
-                            },
-                            tabBarIcon: ({ focused, color }) => {
-                                if (focused) {
+                {APP_ROUTES.map((route) => {
+                    const isHomeTab = route.name === 'Mood';
+
+                    return (
+                        <Tab.Screen
+                            key={route.name}
+                            name={route.name}
+                            component={route.component}
+                            options={{
+                                tabBarLabel: ({ focused, color }) => {
+                                    // Home tab: never show label
+                                    if (isHomeTab) return null;
+
+                                    // Other tabs: always show label
                                     return (
-                                        <View style={{
-                                            backgroundColor: primaryColor,
-                                            marginTop: 10,
-                                            borderRadius: 20,
-                                            width: 50,
-                                            height: 50,
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            marginBottom: Platform.OS === 'android' ? 0 : 0,
-                                            shadowColor: primaryColor,
-                                            shadowOffset: { width: 0, height: 4 },
-                                            shadowOpacity: 0.3,
-                                            shadowRadius: 4,
-                                            elevation: 5
+                                        <Text style={{
+                                            color: focused ? primaryColor : color,
+                                            fontSize: 10,
+                                            fontWeight: '700',
+                                            marginTop: 4,
+                                            marginBottom: Platform.OS === 'android' ? 5 : 0
                                         }}>
+                                            {route.label}
+                                        </Text>
+                                    );
+                                },
+                                tabBarIcon: ({ focused, color }) => {
+                                    // Home tab: ALWAYS show active style with custom image
+                                    if (isHomeTab) {
+                                        return (
+                                            <View style={{
+                                                backgroundColor: primaryColor,
+                                                marginTop: 10,
+                                                borderRadius: 20,
+                                                width: 50,
+                                                height: 50,
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                marginBottom: Platform.OS === 'android' ? 0 : 0,
+                                                shadowColor: primaryColor,
+                                                shadowOffset: { width: 0, height: 4 },
+                                                shadowOpacity: 0.3,
+                                                shadowRadius: 4,
+                                                elevation: 5,
+                                                overflow: 'hidden'
+                                            }}>
+                                                <AnimatedMoodIcon />
+                                            </View>
+                                        );
+                                    }
+
+                                    // Other tabs: show primary color icon when focused (no background)
+                                    if (focused) {
+                                        return (
+                                            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                                                <route.icon
+                                                    size={24}
+                                                    color={primaryColor}
+                                                    strokeWidth={2.5}
+                                                />
+                                            </View>
+                                        );
+                                    }
+
+                                    // Other tabs: inactive state
+                                    return (
+                                        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
                                             <route.icon
-                                                size={38}
-                                                color='#FFFFFF'
+                                                size={24}
+                                                color={color}
                                                 strokeWidth={2}
                                             />
                                         </View>
                                     );
-                                }
-                                return (
-                                    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                                        <route.icon
-                                            size={24}
-                                            color={color}
-                                            strokeWidth={2}
-                                        />
-                                    </View>
-                                );
-                            },
-                        }}
-                    />
-                ))}
+                                },
+                            }}
+                        />
+                    );
+                })}
             </Tab.Navigator>
         </MeshBackground>
     );

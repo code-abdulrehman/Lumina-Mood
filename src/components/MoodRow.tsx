@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { format } from 'date-fns';
 import { MoodEntry } from '../types/mood';
 import { MOOD_CONFIGS } from '../data/moods';
 import MoodIcon from './MoodIcon';
 import { useMood } from '../context/MoodContext';
+import { Card } from './common/Card';
 
 interface MoodRowProps {
     mood: MoodEntry;
@@ -20,45 +21,37 @@ export const MoodRow: React.FC<MoodRowProps> = ({ mood, onPress }) => {
         : "No conversation yet";
 
     return (
-        <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={onPress}
-            style={[styles.container, { backgroundColor: theme.card }]}
-        >
-            <View style={[styles.iconContainer, { backgroundColor: config?.color || '#eee' }]}>
-                <MoodIcon
-                    iconName={mood.iconName}
-                    size={30}
-                    color="#fff"
-                    customImage={config?.customImage}
-                />
-            </View>
-            <View style={styles.textContainer}>
-                <View style={styles.rowHeader}>
-                    <Text style={styles.label}>{mood.label}</Text>
-                    <Text style={styles.time}>{format(mood.timestamp, 'h:mm a')}</Text>
+        <Card onPress={onPress} padding="small" style={styles.cardSpacing}>
+            <View style={styles.contentContainer}>
+                <View style={[styles.iconContainer, { backgroundColor: config?.color || '#eee' }]}>
+                    <MoodIcon
+                        iconName={mood.iconName}
+                        size={30}
+                        color="#fff"
+                        customImage={config?.customImage}
+                    />
                 </View>
-                <Text style={styles.chatSnippet} numberOfLines={1}>
-                    {lastMessage}
-                </Text>
+                <View style={styles.textContainer}>
+                    <View style={styles.rowHeader}>
+                        <Text style={[styles.label, { color: theme.text }]}>{mood.label}</Text>
+                        <Text style={[styles.time, { color: theme.textSecondary }]}>{format(mood.timestamp, 'h:mm a')}</Text>
+                    </View>
+                    <Text style={[styles.chatSnippet, { color: theme.textSecondary }]} numberOfLines={1}>
+                        {lastMessage}
+                    </Text>
+                </View>
             </View>
-        </TouchableOpacity>
+        </Card>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    cardSpacing: {
+        marginBottom: 8,
+    },
+    contentContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 10,
-        borderRadius: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.02,
-        shadowRadius: 1,
-        elevation: 1,
-
     },
     iconContainer: {
         width: 44,
@@ -80,17 +73,14 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '800',
-        color: '#111827',
     },
     time: {
         fontSize: 10,
-        color: '#9CA3AF',
         fontWeight: '700',
         textTransform: 'uppercase',
     },
     chatSnippet: {
         fontSize: 10,
-        color: '#6B7280',
         fontWeight: '500',
     },
 });

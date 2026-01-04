@@ -6,49 +6,49 @@ export const MOOD_CONFIGS: MoodConfig[] = [
         level: 'awful',
         icon: 'Skull',
         label: 'Awful',
-        color: '#374151', // Dark Gray
+        color: '#1F2933', // Near-black → hopelessness, extreme low
         customImage: CUSTOM_MOOD_IMAGES.awful,
     },
     {
         level: 'unhappy',
         icon: 'Annoyed',
-        label: 'Bad',
-        color: '#6D28D9', // Deep Purple
+        label: 'Angry / Bad',
+        color: '#7F1D1D', // Dark Red → anger, frustration
         customImage: CUSTOM_MOOD_IMAGES.unhappy,
     },
     {
         level: 'down',
         icon: 'Frown',
-        label: 'Down',
-        color: '#60A5FA', // Low-energy Blue
+        label: 'Sad',
+        color: '#2563EB', // Blue → sadness ("feeling blue")
         customImage: CUSTOM_MOOD_IMAGES.down,
     },
     {
         level: 'neutral',
         icon: 'Meh',
         label: 'Neutral',
-        color: '#9CA3AF', // Neutral Gray
+        color: '#9CA3AF', // Gray → emotional flatness
         customImage: CUSTOM_MOOD_IMAGES.neutral,
     },
     {
         level: 'good',
         icon: 'SmilePlus',
         label: 'Good',
-        color: '#34D399', // Green
+        color: '#16A34A', // Green → balance, okay, stability
         customImage: CUSTOM_MOOD_IMAGES.good,
     },
     {
         level: 'great',
         icon: 'Smile',
-        label: 'Great',
-        color: '#FACC15', // Amber
+        label: 'Happy',
+        color: '#FACC15', // Yellow → happiness, warmth
         customImage: CUSTOM_MOOD_IMAGES.great,
     },
     {
         level: 'awesome',
         icon: 'Zap',
         label: 'Awesome',
-        color: '#4a6fa5',
+        color: '#F97316', // Orange → excitement, high energy
         customImage: CUSTOM_MOOD_IMAGES.awesome,
     },
 ];

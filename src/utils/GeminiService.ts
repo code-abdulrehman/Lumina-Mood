@@ -11,8 +11,12 @@ export interface ChatMessage {
  * Verified Model IDs from Google AI Documentation (Jan 2026).
  */
 const MODEL_PRIORITY = [
+    "gemini-2.0-flash-exp",
     "gemini-2.5-flash-lite",
     "gemini-2.5-flash",
+    "gemini-exp-1206",
+    "gemini-2.0-flash-thinking-exp-1219",
+    "gemini-exp-1121",
 ];
 
 export const getGeminiChatResponse = async (
@@ -23,6 +27,9 @@ export const getGeminiChatResponse = async (
     userName?: string | null,
     interests?: string[]
 ) => {
+    let lastError: any = null;
+    let allQuotaExhausted = true;
+
     // Attempt each model in order of priority
     for (let i = 0; i < MODEL_PRIORITY.length; i++) {
         const activeModelName = MODEL_PRIORITY[i];
@@ -89,33 +96,85 @@ export const getGeminiChatResponse = async (
                 throw new Error("Invalid or empty response");
             }
 
+            // Success! Log if we switched models
+            if (i > 0) {
+                console.log(`✅ Successfully switched to model: ${activeModelName}`);
+            }
+
             return text.trim();
 
         } catch (error: any) {
+            lastError = error;
             const errorMsg = error?.message || "";
-            const isQuotaError = errorMsg.includes('429') || errorMsg.toLowerCase().includes('quota');
+            const isQuotaError = errorMsg.includes('429') || errorMsg.toLowerCase().includes('quota') || errorMsg.toLowerCase().includes('resource exhausted');
+            const isRateLimitError = errorMsg.toLowerCase().includes('rate limit') || errorMsg.toLowerCase().includes('too many requests');
             const isNotFoundError = errorMsg.includes('404') || errorMsg.includes('not found');
             const hasNextModel = i < MODEL_PRIORITY.length - 1;
 
-            if ((isQuotaError || isNotFoundError) && hasNextModel) {
-                console.warn(`### SWITCHING MODEL: ${activeModelName} failed (${errorMsg.includes('429') ? 'Quota' : '404'}). Trying ${MODEL_PRIORITY[i + 1]} ###`);
+            // If it's not a quota error, mark that not all quotas are exhausted
+            if (!isQuotaError && !isRateLimitError) {
+                allQuotaExhausted = false;
+            }
+
+            if ((isQuotaError || isRateLimitError || isNotFoundError) && hasNextModel) {
+                const reason = isQuotaError ? 'Quota exhausted' : isRateLimitError ? 'Too many requests' : 'Not found';
+                console.warn(`⚠️ Model ${activeModelName} failed (${reason}). Switching to ${MODEL_PRIORITY[i + 1]}...`);
                 continue;
             }
 
-            console.error(`### GEMINI SDK ERROR (Final Attempt: ${activeModelName}) ###`, error?.message || error);
+            // If this is the last model and it's a quota/rate limit error, we'll handle it below
+            if (!hasNextModel && (isQuotaError || isRateLimitError)) {
+                console.error(`❌ All models exhausted. Last attempt: ${activeModelName}`);
+                break;
+            }
 
-            if (!hasNextModel || (!isQuotaError && !isNotFoundError)) {
-                const fallbacks: Record<string, string> = {
-                    "default": "I'm right here with you. Let's take a slow breath together. You're doing great. [SUGGESTIONS]: Why do I feel like this? | How can I feel better? | What's a small step I can take?",
-                    "Sad": "I hear how heavy things feel. It's okay to not be okay. [SUGGESTIONS]: How can I be kind to myself? | Why is today so hard? | Can we talk about something else?",
-                    "Anxious": "Your mind is moving fast. Try counting 5 things you see. [SUGGESTIONS]: How do I stop overthinking? | Can you help me calm down? | Why do I feel so restless?",
-                };
-                return fallbacks[moodLabel] || fallbacks["default"];
+            // For non-quota errors on the last model, throw immediately with helpful message
+            if (!hasNextModel && !isQuotaError && !isRateLimitError) {
+                console.error(`### GEMINI SDK ERROR (${activeModelName}) ###`, error?.message || error);
+
+                // Provide helpful error messages based on error type
+                if (errorMsg.includes('API_KEY_INVALID') || errorMsg.includes('invalid api key')) {
+                    throw new Error("Invalid API Key. Please check your API key in Settings and make sure it's correct.");
+                }
+                if (errorMsg.includes('403') || errorMsg.includes('permission')) {
+                    throw new Error("API Key doesn't have permission. Please enable Gemini API in Google AI Studio.");
+                }
+                if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+                    throw new Error("Network error. Please check your internet connection and try again.");
+                }
+
+                throw new Error(`AI service error: ${errorMsg}`);
             }
         }
     }
 
-    return "I'm here for you. [SUGGESTIONS]: Tell me more. | Can you help? | What should I do?";
+    // If all models failed due to quota or rate limits
+    if (allQuotaExhausted) {
+        const errorMsg = lastError?.message || "";
+        const isRateLimit = errorMsg.toLowerCase().includes('rate limit') || errorMsg.toLowerCase().includes('too many requests');
+
+        if (isRateLimit) {
+            throw new Error(
+                "⏱️ Too Many Requests\n\n" +
+                "You're sending messages too quickly. Please:\n" +
+                "• Wait 1-2 minutes before trying again\n" +
+                "• Avoid sending multiple messages rapidly\n" +
+                "• The AI needs a short break to process requests"
+            );
+        }
+
+        throw new Error(
+            "📊 Quota Limit Reached\n\n" +
+            "All AI models have reached their daily quota. Solutions:\n\n" +
+            "1️⃣ Wait 24 hours for quota reset\n" +
+            "2️⃣ Get a new API key at: https://aistudio.google.com/\n" +
+            "3️⃣ Check your quota usage in Google AI Studio\n" +
+            "4️⃣ Consider upgrading to paid tier for higher limits"
+        );
+    }
+
+    // Fallback response if we somehow get here
+    throw lastError || new Error("Unable to get AI response. Please try again later.");
 };
 
 export const getGeminiResponse = async (apiKey: string, moodLabel: string, userName?: string | null, interests?: string[]) => {

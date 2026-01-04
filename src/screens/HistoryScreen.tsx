@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMood } from '../context/MoodContext';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { MoodRow } from '../components/MoodRow';
+import { Input } from '../components/common/Input';
 import { History as HistoryIcon, Search, Trash2, Calendar, CalendarDays, Clock } from 'lucide-react-native';
 import { format, isToday, isYesterday } from 'date-fns';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -91,24 +92,21 @@ export const HistoryScreen = () => {
     }, [route.params?.scrollToDate, groupedMoods]);
 
     return (
-        <ScreenWrapper>   
-             <View style={[styles.mainContainer, { backgroundColor: 'transparent', paddingTop: insets.top || 20 }]}>
+        <ScreenWrapper>
+            <View style={[styles.mainContainer, { backgroundColor: 'transparent', paddingTop: insets.top || 20 }]}>
                 <View style={styles.header}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center'}}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={[styles.title, { color: theme.text }]}>History</Text>
                     </View>
                     <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Your emotional patterns and conversations.</Text>
 
-                    <View style={[styles.searchBar, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                        <Search size={18} color={theme.textSecondary} />
-                        <TextInput
-                            placeholder="Search chats or moods..."
-                            placeholderTextColor={theme.textSecondary}
-                            style={[styles.searchInput, { color: theme.text }]}
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                        />
-                    </View>
+                    <Input
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        placeholder="Search chats or moods..."
+                        icon={<Search size={18} color={theme.textSecondary} />}
+                        containerStyle={styles.searchContainer}
+                    />
                 </View>
 
                 {moods.length === 0 ? (
@@ -182,20 +180,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     title: { fontSize: 32, fontWeight: '900' },
-    subtitle: { fontSize: 15, fontWeight: '500', marginBottom:10 },
-    searchBar: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        height: 50,
-        borderRadius: 15,
-        borderWidth: 1,
-    },
-    searchInput: {
-        flex: 1,
-        marginLeft: 10,
-        fontSize: 15,
-        fontWeight: '600',
+    subtitle: { fontSize: 15, fontWeight: '500', marginBottom: 10 },
+    searchContainer: {
+        marginTop: 5,
     },
     listContent: {
         paddingHorizontal: 20,

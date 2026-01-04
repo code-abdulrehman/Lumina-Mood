@@ -1,26 +1,61 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { View, StyleSheet, ViewStyle, TouchableOpacity } from 'react-native';
 import { useMood } from '../../context/MoodContext';
 
 interface CardProps {
     children: React.ReactNode;
     style?: ViewStyle | ViewStyle[];
     backgroundColor?: string;
+    onPress?: () => void;
+    activeOpacity?: number;
+    padding?: 'none' | 'small' | 'medium' | 'large';
 }
 
-export const Card: React.FC<CardProps> = ({ children, style, backgroundColor }) => {
+export const Card: React.FC<CardProps> = ({
+    children,
+    style,
+    backgroundColor,
+    onPress,
+    activeOpacity = 0.7,
+    padding = 'medium'
+}) => {
     const { theme } = useMood();
-    const bg = backgroundColor || theme.card; // Default to theme.card or white depending on context (usually theme.card is #fff or similar)
+    const bg = backgroundColor || theme.card;
+
+    const getPadding = () => {
+        switch (padding) {
+            case 'none': return 0;
+            case 'small': return 12;
+            case 'medium': return 20;
+            case 'large': return 24;
+            default: return 20;
+        }
+    };
+
+    const cardStyles = [
+        styles.card,
+        {
+            backgroundColor: bg,
+            borderRadius: theme.radiusLarge,
+            padding: getPadding(),
+        },
+        style
+    ];
+
+    if (onPress) {
+        return (
+            <TouchableOpacity
+                style={cardStyles}
+                onPress={onPress}
+                activeOpacity={activeOpacity}
+            >
+                {children}
+            </TouchableOpacity>
+        );
+    }
 
     return (
-        <View style={[
-            styles.card,
-            {
-                backgroundColor: bg,
-                borderRadius: theme.radiusLarge
-            },
-            style
-        ]}>
+        <View style={cardStyles}>
             {children}
         </View>
     );
@@ -28,7 +63,6 @@ export const Card: React.FC<CardProps> = ({ children, style, backgroundColor }) 
 
 const styles = StyleSheet.create({
     card: {
-        padding: 20,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.02,
