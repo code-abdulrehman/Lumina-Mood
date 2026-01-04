@@ -663,7 +663,7 @@ export const HomeScreen = () => {
                                                 onPress={() => handleQuickQuestionClick(String(s))}
                                             >
                                                 <Text style={[styles.quickBtnText, { color: theme.primary }]} numberOfLines={2}>{String(s)}
-                                                    <ArrowRight size={14} color={theme.primary} style={{ marginLeft: 5, marginTop: 2 }} />
+                                                    <ArrowRight size={14} color={theme.primary} style={{ marginLeft: 5, position: 'relative', right: 0, top: 2 }} />
                                                 </Text>
                                             </TouchableOpacity>
                                         ))}
@@ -923,14 +923,13 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
-        paddingVertical: 14,
+        paddingVertical: 8,
         marginBottom: 10,
         borderWidth: 1.5,
     },
     quickBtnText: {
         fontSize: 12,
         fontWeight: '600',
-        lineHeight: 14,
         marginRight: 10,
     },
     footerContainer: {
