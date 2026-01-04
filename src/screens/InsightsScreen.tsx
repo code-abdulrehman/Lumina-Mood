@@ -12,6 +12,8 @@ import MoodIcon from '../components/MoodIcon';
 import { subDays, subMonths, subYears, isAfter, format, startOfToday } from 'date-fns';
 import ViewShot, { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
+import { ReportCard } from '../components/common/ReportCard';
+import { Card } from '../components/common/Card';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -22,7 +24,6 @@ export const InsightsScreen = () => {
     const { moods, primaryColor, theme } = useMood();
     const [range, setRange] = useState<FilterRange>('7d');
     const reportRef = useRef(null);
-    const shareRef = useRef(null);
     const [showAllDistribution, setShowAllDistribution] = useState(false);
 
     const filteredMoods = useMemo(() => {
@@ -89,7 +90,9 @@ export const InsightsScreen = () => {
 
     const handleShareReport = async () => {
         try {
+            // captureRef works on the view ref directly
             const uri = await captureRef(reportRef, { format: 'png', quality: 1.0 });
+            // ... (keep rest of share logic)
             if (Platform.OS === 'web') {
                 const text = `📊 My Lumina Mood ${reportData?.title}\n${reportData?.summary}\nMood: ${reportData?.mainMoodLabel}`;
                 await Share.share({ message: text });
@@ -98,8 +101,8 @@ export const InsightsScreen = () => {
             if (await Sharing.isAvailableAsync()) {
                 await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: `Share ${reportData?.title}`, UTI: 'public.png' });
             }
-        } catch (e) {
-            Alert.alert("Share Error", "Failed to capture report card.");
+        } catch (e: any) {
+            Alert.alert("Share Error", "Failed to capture report card: " + (e?.message || "Unknown error"));
         }
     };
 
@@ -108,7 +111,7 @@ export const InsightsScreen = () => {
             onPress={() => setRange(value)}
             style={[
                 styles.filterBtn,
-                { backgroundColor: range === value ? primaryColor : theme.textSecondary+"15" }
+                { backgroundColor: range === value ? primaryColor : theme.textSecondary + "15" }
             ]}
         >
             <Text style={[styles.filterText, { color: range === value ? '#fff' : theme.textSecondary }]}>{label}</Text>
@@ -123,7 +126,7 @@ export const InsightsScreen = () => {
                     showsVerticalScrollIndicator={false}
                 >
                     <View style={styles.header}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center'}}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <Text style={[styles.title, { color: theme.text }]}>Insights</Text>
                         </View>
                         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Patterns focused on your persistence.</Text>
@@ -137,57 +140,51 @@ export const InsightsScreen = () => {
                     </View>
 
                     {reportData && (
-                        <View style={styles.cardContainer3D}>
-                            <View style={{ borderRadius: 25, overflow: 'hidden' }}>
-                                <ViewShot ref={reportRef} options={{ format: 'png', quality: 1.0 }}>
-                                    <View style={[styles.premiumCard, { backgroundColor: primaryColor }]} ref={shareRef}>
-                                        <View style={styles.cardHeader}>
-                                            <View style={styles.miniBadge}>
-                                                <Award size={12} color="#FFF" />
-                                                <Text style={styles.miniBadgeText}>ANALYTICS</Text>
-                                            </View>
-                                            <Text style={styles.dateRangeText}>{reportData.dateRange}</Text>
-                                        </View>
-
-                                        <View style={styles.heroSection}>
-                                            <Text style={styles.heroValue}>{reportData.mainMoodLabel}</Text>
-                                            <Text style={styles.heroSubLabel}>DOMINANT FLOW</Text>
-                                        </View>
-
-                                        <View style={styles.statsMiniRow}>
-                                            <View style={styles.miniStat}>
-                                                <Text style={styles.miniStatValue}>{reportData.count}</Text>
-                                                <Text style={styles.miniStatLabel}>LOGS</Text>
-                                            </View>
-                                            <View style={styles.miniDivider} />
-                                            <View style={styles.miniStat}>
-                                                <Text style={styles.miniStatValue}>{range.toUpperCase()}</Text>
-                                                <Text style={styles.miniStatLabel}>WINDOW</Text>
-                                            </View>
-                                        </View>
-
-                                        <View style={styles.footerSection}>
-                                            <View style={styles.footerIcons}>
-                                                {reportData.topMoodConfigs.slice(0, 3).map((cfg, i) => (
-                                                    <View key={i} style={[styles.miniMoodWrapper, { marginLeft: i === 0 ? 0 : -18, zIndex: 10 - i }]}>
-                                                        <MoodIcon
-                                                            iconName={cfg?.icon || ''}
-                                                            size={32}
-                                                            color={cfg?.color || '#FFF'}
-                                                            customImage={cfg?.customImage}
-                                                        />
-                                                    </View>
-                                                ))}
-                                            </View>
-                                            <View style={styles.brandTag}>
-                                                <Zap size={10} color="#FFF" fill="#FFF" />
-                                                <Text style={styles.brandTagText}>LUMINA INSIGHTS</Text>
-                                            </View>
-                                        </View>
-                                    </View>
-                                </ViewShot>
+                        <ReportCard ref={reportRef} color={primaryColor}>
+                            <View style={styles.cardHeader}>
+                                <View style={styles.miniBadge}>
+                                    <Award size={12} color="#FFF" />
+                                    <Text style={styles.miniBadgeText}>ANALYTICS</Text>
+                                </View>
+                                <Text style={styles.dateRangeText}>{reportData.dateRange}</Text>
                             </View>
-                        </View>
+
+                            <View style={styles.heroSection}>
+                                <Text style={styles.heroValue}>{reportData.mainMoodLabel}</Text>
+                                <Text style={styles.heroSubLabel}>DOMINANT FLOW</Text>
+                            </View>
+
+                            <View style={styles.statsMiniRow}>
+                                <View style={styles.miniStat}>
+                                    <Text style={styles.miniStatValue}>{reportData.count}</Text>
+                                    <Text style={styles.miniStatLabel}>LOGS</Text>
+                                </View>
+                                <View style={styles.miniDivider} />
+                                <View style={styles.miniStat}>
+                                    <Text style={styles.miniStatValue}>{range.toUpperCase()}</Text>
+                                    <Text style={styles.miniStatLabel}>WINDOW</Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.footerSection}>
+                                <View style={styles.footerIcons}>
+                                    {reportData.topMoodConfigs.slice(0, 3).map((cfg, i) => (
+                                        <View key={i} style={[styles.miniMoodWrapper, { marginLeft: i === 0 ? 0 : -18, zIndex: 10 - i }]}>
+                                            <MoodIcon
+                                                iconName={cfg?.icon || ''}
+                                                size={32}
+                                                color={cfg?.color || '#FFF'}
+                                                customImage={cfg?.customImage}
+                                            />
+                                        </View>
+                                    ))}
+                                </View>
+                                <View style={styles.brandTag}>
+                                    <Zap size={10} color="#FFF" fill="#FFF" />
+                                    <Text style={styles.brandTagText}>LUMINA INSIGHTS</Text>
+                                </View>
+                            </View>
+                        </ReportCard>
                     )}
 
                     {reportData && (
@@ -209,7 +206,7 @@ export const InsightsScreen = () => {
                                 <PieChart size={18} color={primaryColor} />
                                 <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Mood Distribution</Text>
                             </View>
-                            <View style={[styles.contentBox, styles.barCard, { backgroundColor: theme.card }]}>
+                            <Card>
                                 {distribution.filter(d => d.count > 0).map((item, idx) => {
                                     const config = MOOD_CONFIGS.find(c => c.level === item.level);
                                     return (
@@ -223,8 +220,8 @@ export const InsightsScreen = () => {
                                             <View style={[styles.barBg, { backgroundColor: theme.border }]}>
                                                 <View style={[
                                                     styles.barFill,
-                                                    { 
-                                                        width: `${item.percentage}%`, 
+                                                    {
+                                                        width: `${item.percentage}%`,
                                                         backgroundColor: config?.color,
                                                         flexDirection: 'row',
                                                         justifyContent: 'flex-end',
@@ -232,18 +229,18 @@ export const InsightsScreen = () => {
                                                         paddingRight: 0.4
                                                     }
                                                 ]}>
-                                                    <MoodIcon 
-                                                        iconName={config?.icon || ''} 
-                                                        size={12} 
-                                                        color="#FFF" 
-                                                        customImage={config?.customImage} 
+                                                    <MoodIcon
+                                                        iconName={config?.icon || ''}
+                                                        size={12}
+                                                        color="#FFF"
+                                                        customImage={config?.customImage}
                                                     />
                                                 </View>
                                             </View>
                                         </View>
                                     );
                                 })}
-                            </View>
+                            </Card>
                         </View>
                     )}
 
@@ -253,14 +250,14 @@ export const InsightsScreen = () => {
                                 <Calendar size={18} color={primaryColor} />
                                 <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Activity Flow</Text>
                             </View>
-                            <View style={[styles.contentBox, styles.chartBox, { backgroundColor: theme.card }]}>
+                            <Card style={styles.chartBox}>
                                 {trendData.map((item, idx) => {
                                     const max = Math.max(...trendData.map(d => d.count)) || 1;
                                     const fill = (item.count / max);
                                     const config = MOOD_CONFIGS.find(c => c.level === item.moodLevel);
                                     return (
                                         <View key={idx} style={styles.chartCol}>
-                                            <View style={[styles.timeBarBg, styles.barCard, { backgroundColor: theme.border, height: 80, width: 10 }]}>
+                                            <View style={[styles.timeBarBg, { backgroundColor: theme.border, height: 80, width: 10 }]}>
                                                 <View style={[
                                                     styles.timeBarFill,
                                                     { height: `${fill * 100}%`, backgroundColor: config?.color || theme.border, opacity: item.count > 0 ? 1 : 0.3 }
@@ -272,7 +269,7 @@ export const InsightsScreen = () => {
                                         </View>
                                     );
                                 })}
-                            </View>
+                            </Card>
                         </View>
                     )}
 
@@ -282,7 +279,7 @@ export const InsightsScreen = () => {
                                 <Clock size={18} color={primaryColor} />
                                 <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Mood by Time</Text>
                             </View>
-                            <View style={[styles.contentBox, styles.barCard, { backgroundColor: theme.card }]}>
+                            <Card>
                                 <View style={styles.timeRow}>
                                     {timeOfDayData.map((item, idx) => {
                                         const max = Math.max(...timeOfDayData.map(d => d.count)) || 1;
@@ -303,7 +300,7 @@ export const InsightsScreen = () => {
                                         );
                                     })}
                                 </View>
-                            </View>
+                            </Card>
                         </View>
                     )}
 
@@ -320,9 +317,9 @@ export const InsightsScreen = () => {
                                     </View>
                                 ))
                             ) : (
-                                <View style={[styles.contentBox, { padding: 24, backgroundColor: theme.card }]}>
+                                <Card style={{ padding: 24 }}>
                                     <Text style={{ color: theme.textSecondary, textAlign: 'center' }}>Keep logging to see "{range.toUpperCase()}" patterns.</Text>
-                                </View>
+                                </Card>
                             )}
                         </View>
                     )}
@@ -338,6 +335,8 @@ export const InsightsScreen = () => {
         </ScreenWrapper>
     );
 };
+
+// ... (keep styles, but remove unused ones)
 
 const styles = StyleSheet.create({
     mainContainer: { flex: 1 },
@@ -356,28 +355,7 @@ const styles = StyleSheet.create({
     filterText: { fontSize: 12, fontWeight: '800' },
 
     // 3D EFFECT CONTAINER
-    cardContainer3D: {
-        marginBottom: 30,
-        borderRadius: 25,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.25,
-        shadowRadius: 16,
-        elevation: 15,
-        backgroundColor: 'rgba(0,0,0,0.05)',
-        padding: 4,
-    },
-    premiumCard: {
-        padding: 20,
-        minHeight: 200,
-        position: 'relative',
-        overflow: 'hidden',
-        borderRadius: 24,
-        borderWidth: 1,
-        borderBottomWidth: 4,
-        borderRightWidth: 4,
-        borderColor: 'rgba(255,255,255,0.3)',
-    },
+
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -422,13 +400,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: '#F8F9FA',
     },
-    barCard: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.02,
-        shadowRadius: 1,
-        elevation: 1,
-    },
+
     heroSection: {
         alignItems: 'center',
         marginBottom: 15,
@@ -522,16 +494,16 @@ const styles = StyleSheet.create({
     section: { marginBottom: 32 },
     sectionHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, paddingLeft: 4 },
     sectionTitle: { fontSize: 12, fontWeight: '900', marginLeft: 8, textTransform: 'uppercase', letterSpacing: 1 },
-    contentBox: { borderRadius: 24, padding: 20 },
+
     barContainer: { marginBottom: 12 },
     barLabels: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
     barLabelRow: { flexDirection: 'row', alignItems: 'center' },
     labelMain: { fontSize: 11, fontWeight: '700' },
     labelSub: { fontSize: 11, fontWeight: '700' },
-    barBg: { height:12, borderRadius: 6, overflow: 'hidden' },
+    barBg: { height: 12, borderRadius: 6, overflow: 'hidden' },
     barFill: { height: '100%', borderRadius: 6 },
 
-    shareAction: { height: 50, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation:1 },
+    shareAction: { height: 50, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 1 },
     shareActionText: { fontSize: 14, fontWeight: '800', marginLeft: 10 },
 
     chartBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', height: 140 },

@@ -11,6 +11,8 @@ import { MOOD_CONFIGS } from '../data/moods';
 import MoodIcon from '../components/MoodIcon';
 import ViewShot, { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
+import { ReportCard } from '../components/common/ReportCard';
+import { Card } from '../components/common/Card';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -87,55 +89,49 @@ export const StreakScreen = () => {
                     showsVerticalScrollIndicator={false}
                 >
                     <View style={styles.header}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center'}}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <Text style={[styles.title, { color: theme.text }]}>Streak</Text>
                         </View>
                         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Your daily emotional persistence.</Text>
                     </View>
 
                     {/* SMALL, MINIMAL 3D ACHIEVMENT CARD */}
-                    <View style={styles.cardContainer3D}>
-                        <View style={{ borderRadius: 25, overflow: 'hidden' }}>
-                            <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1.0 }}>
-                                <View style={[styles.streakCard, { backgroundColor: primaryColor }]} ref={shareRef}>
-                                    <View style={styles.cardHeader}>
-                                        <View style={styles.miniBadge}>
-                                            <Award size={12} color="#FFF" />
-                                            <Text style={styles.miniBadgeText}>VERIFIED</Text>
-                                        </View>
-                                        <Text style={styles.cardMonthLabel}>{format(viewDate, 'MMM yyyy')}</Text>
-                                    </View>
-
-                                    <View style={styles.heroSection}>
-                                        <View style={styles.streakDisplay}>
-                                            <Text style={styles.streakValue}>{stats.maxStreak}</Text>
-                                            <Flame size={24} color="#FFF" fill="#FFF" style={styles.flameIcon} />
-                                        </View>
-                                        <Text style={styles.heroLabel}>STREAK FOCUS</Text>
-                                    </View>
-
-                                    <View style={styles.bottomSection}>
-                                        <View style={styles.moodStack}>
-                                            {stats.topMoodConfigs.slice(0, 3).map((cfg, i) => (
-                                                <View key={i} style={[styles.miniMoodWrapper, { marginLeft: i === 0 ? 0 : -18, zIndex: 10 - i }]}>
-                                                    <MoodIcon
-                                                        iconName={cfg?.icon || ''}
-                                                        size={32}
-                                                        color={cfg?.color || '#FFF'}
-                                                        customImage={cfg?.customImage}
-                                                    />
-                                                </View>
-                                            ))}
-                                        </View>
-                                        <View style={styles.brandBadge}>
-                                            <Zap size={12} color="#FFF" fill="#FFF" />
-                                            <Text style={styles.brandText}>LUMINA</Text>
-                                        </View>
-                                    </View>
-                                </View>
-                            </ViewShot>
+                    <ReportCard ref={viewShotRef} color={primaryColor} style={styles.streakCard}>
+                        <View style={styles.cardHeader}>
+                            <View style={styles.miniBadge}>
+                                <Award size={12} color="#FFF" />
+                                <Text style={styles.miniBadgeText}>VERIFIED</Text>
+                            </View>
+                            <Text style={styles.cardMonthLabel}>{format(viewDate, 'MMM yyyy')}</Text>
                         </View>
-                    </View>
+
+                        <View style={styles.heroSection}>
+                            <View style={styles.streakDisplay}>
+                                <Text style={styles.streakValue}>{stats.maxStreak}</Text>
+                                <Flame size={24} color="#FFF" fill="#FFF" style={styles.flameIcon} />
+                            </View>
+                            <Text style={styles.heroLabel}>STREAK FOCUS</Text>
+                        </View>
+
+                        <View style={styles.bottomSection}>
+                            <View style={styles.moodStack}>
+                                {stats.topMoodConfigs.slice(0, 3).map((cfg, i) => (
+                                    <View key={i} style={[styles.miniMoodWrapper, { marginLeft: i === 0 ? 0 : -18, zIndex: 10 - i }]}>
+                                        <MoodIcon
+                                            iconName={cfg?.icon || ''}
+                                            size={32}
+                                            color={cfg?.color || '#FFF'}
+                                            customImage={cfg?.customImage}
+                                        />
+                                    </View>
+                                ))}
+                            </View>
+                            <View style={styles.brandBadge}>
+                                <Zap size={12} color="#FFF" fill="#FFF" />
+                                <Text style={styles.brandText}>LUMINA</Text>
+                            </View>
+                        </View>
+                    </ReportCard>
 
                     {/* ACTION BUTTONS */}
                     <View style={styles.actionRow}>
@@ -211,13 +207,13 @@ export const StreakScreen = () => {
                             </View>
                         </View>
 
-                        <View style={[styles.pixelGrid, { backgroundColor: theme.card, borderRadius: 24 }]}>
+                        <Card style={styles.pixelGrid}>
                             {pixelData.map((day, idx) => {
                                 const config = day.mood ? MOOD_CONFIGS.find(c => c.level === day.mood?.level) : null;
                                 const hasData = !!config;
 
                                 const PixelContent = (
-                                    <View style={[styles.pixelBox, { borderWidth: 1, borderColor: new Date(day.date).getDate() === new Date().getDate() ? theme.primary : 'transparent' }, !config && { backgroundColor: theme.primary + '15' }, config && { backgroundColor: config.color + '65', borderRadius: 10}]}>
+                                    <View style={[styles.pixelBox, { borderWidth: 1, borderColor: new Date(day.date).getDate() === new Date().getDate() ? theme.primary : 'transparent' }, !config && { backgroundColor: theme.primary + '15' }, config && { backgroundColor: config.color + '65', borderRadius: 10 }]}>
                                         {config ? (
                                             <MoodIcon iconName={config.icon} size={22} color={config.color} customImage={config.customImage} strokeWidth={2} />
                                         ) : (
@@ -236,7 +232,7 @@ export const StreakScreen = () => {
                                     </View>
                                 );
                             })}
-                        </View>
+                        </Card>
                     </View>
 
                     <View style={styles.statsRow}>
@@ -263,17 +259,7 @@ const styles = StyleSheet.create({
     subtitle: { fontSize: 15, fontWeight: '500' },
 
     // 3D EFFECT CONTAINER
-    cardContainer3D: {
-        marginBottom: 30,
-        borderRadius: 25,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.25,
-        shadowRadius: 16,
-        elevation: 15,
-        backgroundColor: 'rgba(0,0,0,0.05)',
-        padding: 4,
-    },
+
     streakCard: {
         padding: 20,
         minHeight: 200,
