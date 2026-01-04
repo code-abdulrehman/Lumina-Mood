@@ -1,17 +1,23 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Alert, SectionList } from 'react-native';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMood } from '../context/MoodContext';
+import { ScreenWrapper } from '../components/ScreenWrapper';
 import { MoodRow } from '../components/MoodRow';
-import { History as HistoryIcon, Search, Trash2, Calendar, Clock } from 'lucide-react-native';
+import { Input } from '../components/common/Input';
+import { History as HistoryIcon, Search, Trash2, Calendar, CalendarDays, Clock } from 'lucide-react-native';
 import { format, isToday, isYesterday } from 'date-fns';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+
 
 export const HistoryScreen = () => {
     const insets = useSafeAreaInsets();
     const { moods, deleteMoodEntry, theme, primaryColor } = useMood();
     const navigation = useNavigation<any>();
+    const route = useRoute<any>();
     const [searchQuery, setSearchQuery] = useState('');
+    const sectionListRef = useRef<SectionList>(null);
 
     const filteredMoods = useMemo(() => {
         if (!searchQuery) return moods;
@@ -30,14 +36,14 @@ export const HistoryScreen = () => {
 
             if (isToday(date)) title = 'Today';
             else if (isYesterday(date)) title = 'Yesterday';
-            else title = format(date, 'MMMM yyyy');
+            else title = format(date, 'MMMM d, yyyy');
 
-            const section = sections.find(s => s.title === title);
-            if (section) {
-                section.data.push(m);
-            } else {
-                sections.push({ title, data: [m] });
+            let section = sections.find(s => s.title === title);
+            if (!section) {
+                section = { title, data: [] };
+                sections.push(section);
             }
+            section.data.push(m);
         });
 
         return sections;
@@ -55,69 +61,114 @@ export const HistoryScreen = () => {
     };
 
     const handlePress = (mood: any) => {
-        navigation.navigate('Home', { resumeEntry: mood });
+        navigation.navigate('Mood', { resumeEntry: mood });
     };
 
-    return (
-        <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
-            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                <Text style={[styles.title, { color: theme.text }]}>History</Text>
-                <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Your emotional patterns and conversations.</Text>
+    // Auto-scroll to specific date when navigated from Streak screen
+    useEffect(() => {
+        if (route.params?.scrollToDate && sectionListRef.current && groupedMoods.length > 0) {
+            const targetDate = route.params.scrollToDate;
 
-                <View style={[styles.searchBar, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                    <Search size={18} color={theme.textSecondary} />
-                    <TextInput
-                        placeholder="Search chats or moods..."
-                        placeholderTextColor={theme.textSecondary}
-                        style={[styles.searchInput, { color: theme.text }]}
+            // Find the section index that contains this date
+            const sectionIndex = groupedMoods.findIndex(section =>
+                section.data.some(mood => format(new Date(mood.timestamp), 'yyyy-MM-dd') === targetDate)
+            );
+
+            if (sectionIndex !== -1) {
+                // Small delay to ensure SectionList is rendered
+                setTimeout(() => {
+                    sectionListRef.current?.scrollToLocation({
+                        sectionIndex: sectionIndex,
+                        itemIndex: 0,
+                        animated: true,
+                        viewPosition: 0
+                    });
+                }, 300);
+            }
+
+            // Clear the param after scrolling
+            navigation.setParams({ scrollToDate: undefined });
+        }
+    }, [route.params?.scrollToDate, groupedMoods]);
+
+    return (
+        <ScreenWrapper>
+            <View style={[styles.mainContainer, { backgroundColor: 'transparent', paddingTop: insets.top || 20 }]}>
+                <View style={styles.header}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={[styles.title, { color: theme.text }]}>History</Text>
+                    </View>
+                    <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Your emotional patterns and conversations.</Text>
+
+                    <Input
                         value={searchQuery}
                         onChangeText={setSearchQuery}
+                        placeholder="Search chats or moods..."
+                        icon={<Search size={18} color={theme.textSecondary} />}
+                        containerStyle={styles.searchContainer}
                     />
                 </View>
-            </View>
 
-            {moods.length === 0 ? (
-                <View style={styles.emptyState}>
-                    <HistoryIcon size={80} color={theme.border} strokeWidth={1} />
-                    <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No history found. Talk to Lumina to start your journal.</Text>
-                </View>
-            ) : (
-                <FlatList
-                    data={groupedMoods}
-                    keyExtractor={(item) => item.title}
-                    renderItem={({ item }) => (
-                        <View style={styles.groupContainer}>
-                            <View style={styles.groupHeader}>
-                                {item.title === 'Today' ? (
-                                    <Clock size={14} color={primaryColor} />
-                                ) : (
-                                    <Calendar size={14} color={theme.textSecondary} />
-                                )}
-                                <Text style={[styles.groupTitle, { color: item.title === 'Today' ? primaryColor : theme.textSecondary }]}>
-                                    {item.title}
-                                </Text>
-                            </View>
-                            {item.data.map(mood => (
-                                <View key={mood.id} style={styles.rowWrapper}>
-                                    <View style={{ flex: 1 }}>
-                                        <MoodRow mood={mood} onPress={() => handlePress(mood)} />
-                                    </View>
-                                    <TouchableOpacity
-                                        onPress={() => handleDelete(mood.id)}
-                                        activeOpacity={0.6}
-                                        style={[styles.deleteBtn, { backgroundColor: '#FEE2E2' }]}
-                                    >
-                                        <Trash2 size={18} color="#EF4444" />
-                                    </TouchableOpacity>
+                {moods.length === 0 ? (
+                    <View style={styles.emptyState}>
+                        <HistoryIcon size={80} color={theme.primary} strokeWidth={1} />
+                        <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No history found. Talk to Lumina Mood to start your journal.</Text>
+                    </View>
+                ) : (
+                    <SectionList
+                        ref={sectionListRef}
+                        sections={groupedMoods}
+                        keyExtractor={(item: any) => item?.id?.toString()}
+                        stickySectionHeadersEnabled={false}
+                        renderSectionHeader={({ section }: { section: any }) => (
+                            <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                paddingVertical: 12,
+                            }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    {section.title === 'Today' ? (
+                                        <Clock size={12} color={primaryColor} />
+                                    ) : (
+                                        section.title === 'Yesterday' ? (
+                                            <Calendar size={12} color={theme.textSecondary} />
+                                        ) : (
+                                            <CalendarDays size={12} color={theme.textSecondary} />
+                                        )
+                                    )}
+                                    <Text style={{
+                                        fontSize: 10,
+                                        fontWeight: '900',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: 1.5,
+                                        marginLeft: 8,
+                                        color: section.title === 'Today' ? primaryColor : theme.textSecondary
+                                    }}>
+                                        {section.title}
+                                    </Text>
                                 </View>
-                            ))}
-                        </View>
-                    )}
-                    contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 100 }]}
-                    showsVerticalScrollIndicator={false}
-                />
-            )}
-        </View>
+                            </View>
+                        )}
+                        renderItem={({ item: mood }: { item: any }) => (
+                            <View style={styles.rowWrapper}>
+                                <View style={{ flex: 1 }}>
+                                    <MoodRow mood={mood} onPress={() => handlePress(mood)} />
+                                </View>
+                                <TouchableOpacity
+                                    onPress={() => handleDelete(mood.id)}
+                                    activeOpacity={0.6}
+                                    style={[styles.deleteBtn, { backgroundColor: '#FEE2E2' }]}
+                                >
+                                    <Trash2 size={18} color="#EF4444" />
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                        contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 100 }]}
+                        showsVerticalScrollIndicator={false}
+                    />
+                )}
+            </View>
+        </ScreenWrapper>
     );
 };
 
@@ -127,30 +178,11 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingHorizontal: 20,
-        paddingBottom: 20,
     },
-    title: {
-        fontSize: 34,
-        fontWeight: '900',
-    },
-    subtitle: {
-        fontSize: 15,
-        fontWeight: '500',
-        marginBottom: 20,
-    },
-    searchBar: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        height: 50,
-        borderRadius: 15,
-        borderWidth: 1,
-    },
-    searchInput: {
-        flex: 1,
-        marginLeft: 10,
-        fontSize: 15,
-        fontWeight: '600',
+    title: { fontSize: 32, fontWeight: '900' },
+    subtitle: { fontSize: 15, fontWeight: '500', marginBottom: 10 },
+    searchContainer: {
+        marginTop: 5,
     },
     listContent: {
         paddingHorizontal: 20,
@@ -178,11 +210,17 @@ const styles = StyleSheet.create({
     },
     deleteBtn: {
         width: 48,
-        height: 48,
+        height: 62,
         borderRadius: 15,
         justifyContent: 'center',
         alignItems: 'center',
+        padding: 5,
         marginLeft: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.02,
+        shadowRadius: 1,
+        elevation: 1,
     },
     emptyState: {
         flex: 1,
